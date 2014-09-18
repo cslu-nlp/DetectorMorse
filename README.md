@@ -66,7 +66,7 @@ These features are fed into an online classifier (the averaged perceptron; Freun
 Exciting extras!
 ================
 
-I've included a Perl script `untokenize.pl` which attempts to invert the Penn Treebank tokenization process. Tokenization is an inherently "lossy" procedure, so there is no guarantee that the output is exactly how it appeared in the WSJ. But, as far as I can tell, it's as good as can be hoped for.
+I've included a Perl script `untokenize.pl` which attempts to invert the Penn Treebank tokenization process. Tokenization is an inherently "lossy" procedure, so there is no guarantee that the output is exactly how it appeared in the WSJ. But, the rules appear to be correct and produce sane text, and I have used it for all experiments.
 
 References
 ==========
