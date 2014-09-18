@@ -6,16 +6,36 @@ DetectorMorse is a program for sentence boundary detection (henceforth, SBD), al
     Rolls-Royce Motor Cars Inc. said it expects its U.S. sales to remain
     steady at about 1,200 cars in 1990.
 
-This sentence contains 4 '.' characters, but only the last denotes a sentence boundary. The first one in "U.S." is unambiguously part of an acronym, not a sentence boundary; the same is true of expressions like "$12.53". But the periods at the end of "Inc." and "U.S." both could easily denote a sentence boundary. Humans use the local context to determine that neither period denote sentence boundaries (e.g. the selectional properties of the verb _expect_ are not met if there is a sentence bounary immediately after "U.S."). DetectorMorse uses artisinal, handcrafted contextual features and machine learning to automatically detect sentence boundaries.
+This sentence contains 4 periods, but only the last denotes a sentence boundary. The first one in `U.S.` is unambiguously part of an acronym, not a sentence boundary; the same is true of expressions like `$12.53`. But the periods at the end of `Inc.` and `U.S.` both could easily denote a sentence boundary. Humans use the local context to determine that neither period denote sentence boundaries (e.g. the selectional properties of the verb _expect_ are not met if there is a sentence bounary immediately after `U.S.`). DetectorMorse uses artisinal, handcrafted contextual features and machine learning to automatically detect sentence boundaries.
 
 SBD is one of the earliest pieces of many natural language processing pipelines. Since errors at this step are likely to propagate, SBD is an important---albeit overlooked---problem in natural language processing.
 
-DetectorMorse has been tested on CPython 3.4 and PyPy3 (2.3.1, corresponding to Python 3.2); the latter is much, much faster. DetectorMorse depends on the Python module `jsonpickle` to (de)serialize models; see `requirements.txt` for the versions used for testing.
+DetectorMorse has been tested on CPython 3.4 and PyPy3 (2.3.1, corresponding to Python 3.2); the latter is much faster. DetectorMorse depends on the Python module `jsonpickle` to (de)serialize models; see `requirements.txt` for the versions used for testing.
 
 Usage
 =====
 
-FIXME
+     usage: detectormorse.py [-h] [-v] [-V] (-t TRAIN | -r READ)
+                             (-s SEGMENT | -w WRITE | -e EVALUATE) [-C] [-T T]
+     
+     DetectorMorse, by Kyle Gorman
+     
+     optional arguments:
+       -h, --help            show this help message and exit
+       -v, --verbose         enable verbose output
+       -V, --really-verbose  enable even more verbose output
+       -t TRAIN, --train TRAIN
+                             training data
+       -r READ, --read READ  read in serialized model
+       -s SEGMENT, --segment SEGMENT
+                             segment sentences
+       -w WRITE, --write WRITE
+                             write out serialized model
+       -e EVALUATE, --evaluate EVALUATE
+                             evaluate on segmented data
+       -C, --nocase          disable case features
+       -T T                  # of epochs (default: 20)
+
 
 Method
 ======
@@ -43,6 +63,11 @@ The second group pertains directly to whether this is likely to be a sentence bo
 
 These features are fed into an online classifier (the averaged perceptron; Freund & Schapire 1999) which predicts whether an area of interest contains a sentence boundary.
 
+Exciting extras!
+================
+
+I've included a Perl script `untokenize.pl` which attempts to invert the Penn Treebank tokenization process. Tokenization is an inherently "lossy" procedure, so there is no guarantee that the output is exactly how it appeared in the WSJ. But, as far as I can tell, it's as good as can be hoped for.
+
 References
 ==========
 
@@ -59,10 +84,3 @@ A. Mikheev. 2002. Periods, capitalized words, etc. _Computational Linguistics_ 2
 J.C. Reynar & A. Ratnaparkhi. 1997. A maximum entropy approach to identifying sentence boundaries. In _Proc. 5th Conference on Applied Natural Language Processing_, pages 16-19.
 
 M.D. Riley. 1989. Some applications of tree-based modelling to speech and language indexing. In _Proc. DARPA Speech and Natural Language Workshop_, pages 339-352.
-
-A better way? (AKA supervised Mikheev)
-======================================
-
-* Classify L as abbrevation vs. not
-* Classify R as proper name vs. not
-* Use those classification as features for boundary vs. not.
