@@ -1,0 +1,7 @@
+.DS_Store
+*.py[cod]
+__pycache__
+WSJ*.txt
+*.json.gz
+*.sh
+*.xlsx

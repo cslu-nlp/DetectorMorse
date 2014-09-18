@@ -1,0 +1,2 @@
+jsonpickle==0.8.0
+nltk==3.0.0
