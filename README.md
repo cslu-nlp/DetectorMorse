@@ -6,7 +6,7 @@ DetectorMorse is a program for sentence boundary detection (henceforth, SBD), al
     Rolls-Royce Motor Cars Inc. said it expects its U.S. sales to remain
     steady at about 1,200 cars in 1990.
 
-This sentence contains 4 periods, but only the last denotes a sentence boundary. The first one in `U.S.` is unambiguously part of an acronym, not a sentence boundary; the same is true of expressions like `$12.53`. But the periods at the end of `Inc.` and `U.S.` both could easily denote a sentence boundary. Humans use the local context to determine that neither period denote sentence boundaries (e.g. the selectional properties of the verb _expect_ are not met if there is a sentence bounary immediately after `U.S.`). DetectorMorse uses artisinal, handcrafted contextual features and machine learning to automatically detect sentence boundaries.
+This sentence contains 4 periods, but only the last denotes a sentence boundary. The first one in `U.S.` is unambiguously part of an acronym, not a sentence boundary; the same is true of expressions like `$12.53`. But the periods at the end of `Inc.` and `U.S.` both could easily denote a sentence boundary. Humans use the local context to determine that neither period denote sentence boundaries (e.g. the selectional properties of the verb _expect_ are not met if there is a sentence bounary immediately after `U.S.`). DetectorMorse uses artisinal, handcrafted contextual features and low-impact, leave-no-trace machine learning methods to automatically detect sentence boundaries.
 
 SBD is one of the earliest pieces of many natural language processing pipelines. Since errors at this step are likely to propagate, SBD is an important---albeit overlooked---problem in natural language processing.
 
@@ -36,6 +36,9 @@ Usage
        -C, --nocase          disable case features
        -T T                  # of epochs (default: 20)
 
+Files used for training (`-t`/`--train`) and evaluation (`-e`/`--evaluate`)) should contain one sentence per line; newline characters are ignored otherwise.
+
+When segmenting a file (`-s`/`--segment`), DetectorMorse simply inserts a newline after predicted sentence boundaries that aren't already marked by one. All other newline characters are passed through, unmolested.
 
 Method
 ======
@@ -62,6 +65,11 @@ The second group pertains directly to whether this is likely to be a sentence bo
 * (quantized) probability of R being uppercase (after Gillick 2009)
 
 These features are fed into an online classifier (the averaged perceptron; Freund & Schapire 1999) which predicts whether an area of interest contains a sentence boundary.
+
+Caveats
+=======
+
+DetectorMorse processes text by reading the entire file into memory. This means it will not work with files of a size that approaches or exceeds the available RAM. To get around this, you could chop up the file into manageable parts, or modify the script to use memory-mapped IO.
 
 Exciting extras!
 ================

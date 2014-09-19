@@ -67,7 +67,7 @@ NUMBER = r"^(\-?\$?)(\d+(\,\d{3})*([\-\/\:\.]\d+)?)\%?$"
 # special tokens
 NUMBER_TOKEN = "*NUMBER*"
 
-observation = namedtuple("observation", ["L", "P", "Q", "S", "R"])
+observation = namedtuple("observation", ["L", "P", "Q", "S", "R", "end"])
 
 
 # helpers
@@ -78,7 +78,6 @@ def read(filename):
         return source.read()
 
 
-@listify
 def candidates(text):
     """
     Given a string `text`, get candidates and context for feature 
@@ -97,7 +96,7 @@ def candidates(text):
         if not Rmatch:
             continue
         R = word_tokenize(Rmatch.group() + " ")[0]
-        yield observation(L, P, Q, S, R)
+        yield observation(L, P, Q, S, R, end)
 
 
 def token_case(string):
@@ -191,20 +190,28 @@ class Detector(JSONable):
         # FIXME compute decile-based features, too
         X = []
         Y = []
-        for (L, P, Q, S, R) in candidates(text):
+        for (L, P, Q, S, R, _) in candidates(text):
             if P in SURETHANG:
                 continue
             X.append(self.extract_one(L, Q, R, nocase))
             Y.append(bool(match(NEWLINE, S)))
-        # now, actually train
         self.classifier.fit(X, Y, T)
 
     def predict(self, L, Q, R, nocase=NOCASE):
         x = self.extract_one(L, Q, R, nocase)
         return self.classifier.predict(x)
 
-    def segment(self, text):
-        raise NotImplementedError
+    def segments(self, text, nocase=NOCASE):
+        start = 0
+        for (L, P, Q, S, R, end) in candidates(text):
+            # if there's already a newline there, we have nothing to do
+            if match(NEWLINE, S):
+                continue
+            if P in SURETHANG or self.predict(L, Q, R, nocase):
+                yield text[start:end]
+                start = end
+            # otherwise, there's probably not a sentence boundary here
+        yield text[start:]
 
     def evaluate(self, text, nocase=NOCASE):
         """
@@ -213,7 +220,7 @@ class Detector(JSONable):
             "sure thang" (? or !) boundaries as true positives.
         """
         cx = BinaryConfusion()
-        for (L, P, Q, S, R) in candidates(text):
+        for (L, P, Q, S, R, _) in candidates(text):
             if P in SURETHANG:
                 cx.update(True, True)
                 continue
@@ -281,22 +288,24 @@ if __name__ == "__main__":
     # input block
     detector = None
     if args.train:
-        logging.info("Training on '{}'.".format(args.train))
+        logging.info("Training model on '{}'.".format(args.train))
         detector = Detector(read(args.train), T=args.T, nocase=args.nocase)
     elif args.read:
-        logging.info("Reading pretrained detector '{}'.".format(args.read))
+        logging.info("Reading pretrained model '{}'.".format(args.read))
         detector = IO(Detector.load)(args.read)
     # else unreachable
     # output block
-    # if args.segment:
-    #    logging.info("Segmenting '{}'.".format(args.segment))
-    # FIXME
+    if args.segment:
+        logging.info("Segmenting '{}'.".format(args.segment))
+        for segment in detector.segments(read(args.segment),
+                                         nocase=args.nocase):
+            print(segment)
     if args.write:
-        logging.info("Writing detector to '{}'.".format(args.write))
+        logging.info("Writing model to '{}'.".format(args.write))
         IO(detector.dump)(args.write)
     elif args.evaluate:
-        logging.info("Evaluating detector on '{}'.".format(args.evaluate))
-        cx = detector.evaluate(read(args.evaluate))
+        logging.info("Evaluating model on '{}'.".format(args.evaluate))
+        cx = detector.evaluate(read(args.evaluate), nocase=args.nocase)
         cx.pprint()
         print(cx.summary)
     # else unreachable
