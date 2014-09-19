@@ -297,6 +297,6 @@ if __name__ == "__main__":
     elif args.evaluate:
         logging.info("Evaluating detector on '{}'.".format(args.evaluate))
         cx = detector.evaluate(read(args.evaluate))
-        print(cx)
+        cx.pprint()
         print(cx.summary)
     # else unreachable
