@@ -69,7 +69,7 @@ These features are fed into an online classifier (the averaged perceptron; Freun
 Caveats
 =======
 
-DetectorMorse processes text by reading the entire file into memory. This means it will not work with files of a size that approaches or exceeds the available RAM. To get around this, you could chop up the file into manageable parts, or modify the script to use memory-mapped IO.
+DetectorMorse processes text by reading the entire file into memory. This means it will not work with files of a size that approaches or exceeds the available RAM. To get around this, you could chop up the file into manageable parts, or you could just modify the script to use memory-mapped IO.
 
 Exciting extras!
 ================

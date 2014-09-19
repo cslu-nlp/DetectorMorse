@@ -20,12 +20,10 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# quantile.py: quantile calculations
 
 
 """
-Code for quantile estimation, checked against R
+quantile: quantile estimation methods
 
 >>> x = [11.4, 17.3, 21.3, 25.9, 40.1, 50.5, 60., 70., 75.]
 >>> qs = quantiles(x, 5)
@@ -70,6 +68,10 @@ def quantiles(values, bins):
 
 
 def nearest_quantile(quantiles, value):
+    """
+    Given a sorted list of estimated `quantiles`, compute the 0-based 
+    index of the closest quantile to an observed `value`
+    """
     i = bisect_left(quantiles, value)
     if i == 0:
         return 0

@@ -20,9 +20,10 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# jsonable.py: mixin enabling serialization to compressed JSON
 
+"""
+jsonable: a mixin (`JSONable`) enabling serialization to gzipped JSON
+"""
 
 from gzip import GzipFile
 from jsonpickle import decode, encode

@@ -1,12 +1,15 @@
 #!/usr/bin/perl
 # untokenize.pl: undo Penn Treebank tokenization
 # Kyle Gorman <gormanky@ohsu.edu>
+# 
+# no copyright claimed: this is just too simplistic
+
 
 use strict;
 use warnings;
 
-my $replace = "";  # replacement string
-my $holder = "\t"; # placeholder string
+my $replace = "";                   # replacement string, usually null
+my $holder = "<rAnD0mPlaceHolder>"; # placeholder string, to be removed
 
 while (<>) {
     s/ ([:;,\.\?!%]|'')/$holder$1/g;

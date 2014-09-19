@@ -20,8 +20,17 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# sequencetagger.py: online sequence tagging library
+
+"""
+perceptron: perceptron-like classifers, including:
+
+* `Perceptron`: perceptron classifier using the "one vs. all" strategy
+* `BinaryPerceptron`: binary perceptron classifier
+* `SequencePerceptron`: multiclass perceptron for sequence tagging
+* `AveragedPerceptron`: averaged perceptron using "one vs. all" strategy
+* `BinaryAveragedPerceptron`: binary averaged perceptron
+* `SequencePerceptron`: multiclass averaged perceptron for sequence tagging
+"""
 
 
 import logging
