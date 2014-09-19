@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2014 Kyle Gorman
 #
-# jermission is hereby granted, free of charge, to any person obtaining a
+# Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
 # without limitation the rights to use, copy, modify, merge, publish,
@@ -17,18 +17,22 @@
 # OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 # IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# PLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
 perceptron: perceptron-like classifers, including:
 
-* `Perceptron`: perceptron classifier using the "one vs. all" strategy
 * `BinaryPerceptron`: binary perceptron classifier
+* `Perceptron`: multiclass perceptron classifier using the "one vs. 
+   all" strategy
 * `SequencePerceptron`: multiclass perceptron for sequence tagging
-* `AveragedPerceptron`: averaged perceptron using "one vs. all" strategy
-* `BinaryAveragedPerceptron`: binary averaged perceptron
+
+* `BinaryAveragedPerceptron`: binary averaged perceptron classifier
+   vs. all" strategy
+* `AveragedPerceptron`: multiclass averaged perceptron using the "one 
+   vs. all" strategy
 * `SequencePerceptron`: multiclass averaged perceptron for sequence tagging
 """
 
@@ -70,6 +74,38 @@ class Fit(object):
                                                  accuracy.accuracy))
             logging.debug("Epoch {:>2} time elapsed: {}s.".format(i,
                                                  int(time() - tic)))
+
+
+class BinaryPerceptron(Fit, JSONable):
+
+    """
+    Binary perceptron classifier
+    """
+
+    def __init__(self, *, seed=None):
+        self.random = Random(seed)
+        self.weights = defaultdict(int)
+    
+    def score(self, x):
+        return sum(self.weights[feature] for feature in x)
+
+    def predict(self, x):
+        return self.score(x) >= 0
+
+    def fit_one(self, x, y):
+        yhat = self.predict(x)
+        if y != yhat:
+            self.update(x, y)
+        return yhat
+
+    def update(self, x, y, tau=1):
+        if y is False:
+            tau *= -1
+        elif y is not True:
+            raise ValueError("`y` is not boolean")
+        for feature in x:
+            self.weights[feature] += tau
+
 
 
 class Perceptron(Fit, JSONable):
@@ -116,22 +152,9 @@ class Perceptron(Fit, JSONable):
                 scores[cls] += weight
         return scores
 
-    def predict_slow(self, x):
-        """
-        Get scores for all classes using the feature vector `x`. If/when
-        ties arise, resolve them randomly. This is slower than `predict`.
-        """
-        scores = self.scores(x)
-        (_, max_score) = max(scores.items(), key=itemgetter(1))
-        argmax_scores = [cls for (cls, score) in scores.items()
-                         if score == max_score]
-        return self.random.choice(argmax_scores)
-
     def predict(self, x):
         """
-        Same as `predict_slow`, but ties are resolved according to
-        dictionary order, rather than randomly. Obviously, this is faster
-        than `predict_slow`.
+        Predict most likely class for the feature vector `x`
         """
         scores = self.scores(x)
         (argmax_score, _) = max(scores.items(), key=itemgetter(1))
@@ -153,35 +176,6 @@ class Perceptron(Fit, JSONable):
             feature_ptr = self.weights[feature]
             feature_ptr[y] += tau
             feature_ptr[yhat] -= tau
-
-
-class BinaryPerceptron(Fit, JSONable):
-
-    """
-    A variant of the perceptron for binary classification.
-    """
-
-    def __init__(self, *, seed=None):
-        self.random = Random(seed)
-        self.weights = defaultdict(int)
-
-    def predict(self, x):
-        score = sum(self.weights[feature].get(self.time) for feature in x)
-        return score >= 0
-
-    def fit_one(self, x, y):
-        yhat = self.predict(x)
-        if y != yhat:
-            self.update(x, y)
-        return yhat
-
-    def update(self, x, y, tau=1):
-        if y is False:
-            tau = -tau
-        elif y is not True:
-            raise ValueError("y is not boolean")
-        for feature in x:
-            self.weights[feature] += tau
 
 
 TrellisCell = namedtuple("TrellisCell", ["score", "pointer"])
@@ -380,6 +374,40 @@ class LazyWeight(JSONable):
         self.weight += value
 
 
+class BinaryAveragedPerceptron(BinaryPerceptron):
+
+    def __init__(self, *, seed=None):
+        self.random = Random(seed)
+        self.weights = defaultdict(LazyWeight)
+        self.time = 0
+
+    def predict(self, x):
+        score = sum(self.weights[feature].get(self.time) for feature in x)
+        return score >= 0
+
+    def fit_one(self, x, y):
+        retval = super(BinaryAveragedPerceptron, self).fit_one(x, y)
+        self.time += 1
+        return retval
+
+    def update(self, x, y, tau=1):
+        if y is False:
+            tau *= -1
+        elif y is not True:
+            raise ValueError("y is not boolean")
+        for feature in x:
+            self.weights[feature].update(tau, self.time)
+
+
+class AveragedPerceptron(Perceptron):
+
+    def __init__(self, *, default=None, seed=None):
+        self.classes = {default}
+        self.random = Random(seed)
+        self.classifiers = defaultdict(partial(defaultdict,
+                                               BinaryPerceptron))
+
+
 class AveragedPerceptron(Perceptron):
 
     """
@@ -425,31 +453,6 @@ class AveragedPerceptron(Perceptron):
             feature_ptr = self.weights[feature]
             feature_ptr[y].update(+tau, self.time)
             feature_ptr[yhat].update(-tau, self.time)
-
-
-class BinaryAveragedPerceptron(BinaryPerceptron):
-
-    """
-    A variant of the averaged perceptron for binary classification.
-    """
-
-    def __init__(self, *, seed=None):
-        self.random = Random(seed)
-        self.weights = defaultdict(LazyWeight)
-        self.time = 0
-
-    def fit_one(self, x, y):
-        retval = super(BinaryAveragedPerceptron, self).fit_one(x, y)
-        self.time += 1
-        return retval
-
-    def update(self, x, y, tau=1):
-        if y is False:
-            tau = -tau
-        elif y is not True:
-            raise ValueError("y is not boolean")
-        for feature in x:
-            self.weights[feature].update(tau, self.time)
 
 
 class SequenceAveragedPerceptron(AveragedPerceptron, SequencePerceptron):

@@ -72,14 +72,6 @@ observation = namedtuple("observation", ["L", "P", "Q", "S", "R", "end"])
 
 # helpers
 
-"""
-@IO
-def read(filename):
-    with open(filename, "r") as source:
-        return source.read()
-"""
-
-
 def candidates(filename):
     """
     Given a `filename`, get candidates and context for feature extraction 
@@ -87,7 +79,6 @@ def candidates(filename):
     """
     with open(filename, "r") as source:
         text = source.read()
-    # FIXME sxhould this be an instance method?
     for Pmatch in finditer(TARGET, text):
         (P, Q, S) = Pmatch.groups()
         start = Pmatch.start()
@@ -295,7 +286,6 @@ if __name__ == "__main__":
     elif args.read:
         logging.info("Reading pretrained model '{}'.".format(args.read))
         detector = IO(Detector.load)(args.read)
-    # else unreachable
     # output block
     if args.segment:
         logging.info("Segmenting '{}'.".format(args.segment))
@@ -309,4 +299,3 @@ if __name__ == "__main__":
         cx = detector.evaluate(args.evaluate, nocase=args.nocase)
         cx.pprint()
         print(cx.summary)
-    # else unreachable
