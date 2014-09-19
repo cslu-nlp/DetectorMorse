@@ -72,17 +72,21 @@ observation = namedtuple("observation", ["L", "P", "Q", "S", "R", "end"])
 
 # helpers
 
+"""
 @IO
 def read(filename):
     with open(filename, "r") as source:
         return source.read()
+"""
 
 
-def candidates(text):
+def candidates(filename):
     """
-    Given a string `text`, get candidates and context for feature 
-    extraction and classification
+    Given a `filename`, get candidates and context for feature extraction 
+    and classification
     """
+    with open(filename, "r") as source:
+        text = source.read()
     # FIXME sxhould this be an instance method?
     for Pmatch in finditer(TARGET, text):
         (P, Q, S) = Pmatch.groups()
@@ -187,6 +191,7 @@ class Detector(JSONable):
         yield "{},{}".format(Lfeat, Rfeat)
 
     def fit(self, text, nocase=NOCASE, T=T):
+        logging.debug("Extracting features from training data.")
         # FIXME compute decile-based features, too
         X = []
         Y = []
@@ -221,11 +226,8 @@ class Detector(JSONable):
         """
         cx = BinaryConfusion()
         for (L, P, Q, S, R, _) in candidates(text):
-            if P in SURETHANG:
-                cx.update(True, True)
-                continue
             gold = bool(match(NEWLINE, S))
-            guess = self.predict(L, Q, R, nocase)
+            guess = P in SURETHANG or self.predict(L, Q, R, nocase)
             cx.update(gold, guess)
         return cx
 
@@ -289,7 +291,7 @@ if __name__ == "__main__":
     detector = None
     if args.train:
         logging.info("Training model on '{}'.".format(args.train))
-        detector = Detector(read(args.train), T=args.T, nocase=args.nocase)
+        detector = Detector(args.train, T=args.T, nocase=args.nocase)
     elif args.read:
         logging.info("Reading pretrained model '{}'.".format(args.read))
         detector = IO(Detector.load)(args.read)
@@ -297,15 +299,14 @@ if __name__ == "__main__":
     # output block
     if args.segment:
         logging.info("Segmenting '{}'.".format(args.segment))
-        for segment in detector.segments(read(args.segment),
-                                         nocase=args.nocase):
+        for segment in detector.segments(args.segment, nocase=args.nocase):
             print(segment)
     if args.write:
         logging.info("Writing model to '{}'.".format(args.write))
         IO(detector.dump)(args.write)
     elif args.evaluate:
         logging.info("Evaluating model on '{}'.".format(args.evaluate))
-        cx = detector.evaluate(read(args.evaluate), nocase=args.nocase)
+        cx = detector.evaluate(args.evaluate, nocase=args.nocase)
         cx.pprint()
         print(cx.summary)
     # else unreachable

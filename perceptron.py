@@ -66,10 +66,10 @@ class Fit(object):
             for (x, y) in data:
                 yhat = self.fit_one(x, y)
                 accuracy.update(y, yhat)
-            logging.debug("Epoch {:>2} accuracy:\t\t{:.04f}.".format(i,
-                                                                     accuracy.accuracy))
-            logging.debug("Epoch {:>2} time elapsed:\t{}s.".format(i,
-                                                                   int(time() - tic)))
+            logging.debug("Epoch {:>2} accuracy: {:.04f}.".format(i,
+                                                 accuracy.accuracy))
+            logging.debug("Epoch {:>2} time elapsed: {}s.".format(i,
+                                                 int(time() - tic)))
 
 
 class Perceptron(Fit, JSONable):
@@ -303,10 +303,10 @@ class SequencePerceptron(Perceptron):
                 yyhat = self.fit_one(xx, yy)
                 for (y, yhat) in zip(yy, yyhat):
                     accuracy.update(y, yhat)
-            logging.debug("Epoch {:>2} accuracy:\t\t{:.04f}.".format(i,
-                                                                     accuracy.accuracy))
-            logging.debug("Epoch {:>2} time elapsed:\t{}s.".format(i,
-                                                                   int(time() - tic)))
+            logging.debug("Epoch {:>2} accuracy: {:.04f}.".format(i,
+                                                 accuracy.accuracy))
+            logging.debug("Epoch {:>2} time elapsed: {}s.".format(i,
+                                                 int(time() - tic)))
 
 
 class LazyWeight(JSONable):
