@@ -63,9 +63,11 @@ LTOKEN = r"\S+$"
 RTOKEN = r"^\S+"
 NEWLINE = r"^\s*[\r\n]+\s*$"
 NUMBER = r"^(\-?\$?)(\d+(\,\d{3})*([\-\/\:\.]\d+)?)\%?$"
+QUOTE = r"[\"\'\`]+"
 
 # special tokens
 NUMBER_TOKEN = "*NUMBER*"
+QUOTE_TOKEN = "*QUOTE*"
 
 observation = namedtuple("observation", ["L", "P", "Q", "S", "R", "end"])
 
@@ -89,12 +91,11 @@ def candidates(text):
         (P, Q, S) = Pmatch.groups()
         start = Pmatch.start()
         end = Pmatch.end()
-        Lmatch = search(LTOKEN, text[start - BUFFER_SIZE:start])
-        if not Lmatch:
-            continue
+        Lmatch = search(LTOKEN, text[max(0, start - BUFFER_SIZE):start])
         L = word_tokenize(" " + Lmatch.group())[-1]
         Rmatch = search(RTOKEN, text[end:end + BUFFER_SIZE])
-        if not Rmatch:
+        if not Rmatch: 
+            # this usually happens at the end of the document
             continue
         R = word_tokenize(Rmatch.group() + " ")[0]
         yield observation(L, P, Q, S, R, end)
@@ -150,7 +151,7 @@ class Detector(JSONable):
                                             self.classifier)
 
     @listify
-    def extract_one(self, L, Q, R, nocase):
+    def extract_one(self, L, Q, R, nocase=NOCASE):
         """
         Extract features for a single observation of the form /L\.Q?\s+R/;
         Probability distributions for decile-based features will not be
@@ -178,6 +179,8 @@ class Detector(JSONable):
         # R features
         if match(NUMBER, R):
             R = NUMBER_TOKEN
+        elif match(QUOTE, R):
+            R = QUOTE_TOKEN
         else:
             if not nocase:
                 yield "case(R)={}".format(token_case(R))
