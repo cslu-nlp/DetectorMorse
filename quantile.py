@@ -46,7 +46,7 @@ def quantiles(values, bins):
     Compute sample quantile estimates for `bins` evenly spaced bins. The
     algorithm here is "#8" recommended in the following paper:
 
-    R.J. Hyndman & Y. Fan. 1996. Sample quantiles in statistical 
+    R.J. Hyndman & Y. Fan. 1996. Sample quantiles in statistical
     packages. American Statistician 50(4): 361-365.
 
     The code here is loosely based off of the excellent code by:
@@ -55,6 +55,8 @@ def quantiles(values, bins):
     """
     svalues = sorted(values)
     L = len(svalues)
+    if L < 2 or bins < 2:
+        return
     yield svalues[0]
     for i in range(1, bins - 1):
         q = i / bins
@@ -69,7 +71,7 @@ def quantiles(values, bins):
 
 def nearest_quantile(quantiles, value):
     """
-    Given a sorted list of estimated `quantiles`, compute the 0-based 
+    Given a sorted list of estimated `quantiles`, compute the 0-based
     index of the closest quantile to an observed `value`
     """
     i = bisect_left(quantiles, value)

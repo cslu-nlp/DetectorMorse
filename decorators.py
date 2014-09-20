@@ -30,6 +30,16 @@ import logging
 from functools import wraps
 
 
+def dictify(gen):
+    """
+    Convert a generator of (key, value) tuples into a dictionary
+    """
+    @wraps(gen)
+    def patch(*args, **kwargs):
+        return dict(gen(*args, **kwargs))
+    return patched
+
+
 def listify(gen):
     """
     Convert a generator into a function which returns a list

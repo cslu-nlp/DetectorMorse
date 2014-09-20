@@ -33,21 +33,25 @@ Usage
                              write out serialized model
        -e EVALUATE, --evaluate EVALUATE
                              evaluate on segmented data
+       -B BINS, --bins BINS  # of bins (default: 5)
+       -E EPOCHS, --epochs EPOCHS
+                             # of epochs (default: 20)
        -C, --nocase          disable case features
-       -T T                  # of epochs (default: 20)
+        
 
-Files used for training (`-t`/`--train`) and evaluation (`-e`/`--evaluate`)) should contain one sentence per line; newline characters are ignored otherwise.
+Files used for training (`-t`/`--train`) and evaluation (`-e`/`--evaluate`) should contain one sentence per line; newline characters are ignored otherwise.
 
 When segmenting a file (`-s`/`--segment`), DetectorMorse simply inserts a newline after predicted sentence boundaries that aren't already marked by one. All other newline characters are passed through, unmolested.
 
 Method
 ======
 
-First, we extract the tokens to the left (L) and right (R) of the period.
+First, we extract the tokens to the left (L) and right (R) of `.`, `?`, or `!` (P).
 If these tokens match a regular expression for American English numbers (including prices, decimals, negatives, etc.), they are merged into a special token `*NUMBER*` (per Kiss & Strunk 2006).
 
 There are two groups of features that are extracted. The first pertains to whether the preceding word is likely to be an abbrevation or not. Intuitively, this lowers the probability that a sentence boundary is present. These features are:
 
+* identity of P
 * identity of L (Reynar & Ratnaparkhi 1997)
 * does L contain a vowel? (Mikheev 2002)
 * does L contain a period? (Grefenstette 1999)
@@ -56,20 +60,25 @@ There are two groups of features that are extracted. The first pertains to wheth
 
 The second group pertains directly to whether this is likely to be a sentence boundary (some are repeated from before):
 
+* identity of P
 * identity of L (Reynar & Ratnaparkhi 1997)
 * is L followed by any quote characters?
-* identity of L and R (Reynar & Ratnaparkhi 1997)
+* joint identity of L and R (Reynar & Ratnaparkhi 1997)
 * case of R (Riley 1989)
 * (quantized) probability of L being final (after Gillick 2009)
 * (quantized) probability of R being initial (after Riley 1989)
 * (quantized) probability of R being uppercase (after Gillick 2009)
 
-These features are fed into an online classifier (the averaged perceptron; Freund & Schapire 1999) which predicts whether an area of interest contains a sentence boundary.
+The `-B`/`--bins` flag controls the granularity of the quantization.
+
+When the text to be classified is not mixed case, the `-C`/`--nocase` flag can be used to disable the use of case features. However, this does not disable the last listed feature, the the probability of R being uppercase, as this feature might still be informative if the model is trained on mixed-case text and used to classify single-case text.
+
+These features are fed into an online classifier (the averaged perceptron; Freund & Schapire 1999) which predicts whether an area of interest contains a sentence boundary. The `-E`/`--epochs` flag controls the number of training epochs.
 
 Caveats
 =======
 
-DetectorMorse processes text by reading the entire file into memory. This means it will not work with files of a size that approaches or exceeds the available RAM. To get around this, you could chop up the file into manageable parts, or you could just modify the script to use memory-mapped IO.
+DetectorMorse processes text by reading the entire file into memory. This means it will not work with files of a size that approaches or exceeds the available RAM. The easiest way to get around this is to import the `Detector` instance in your own Python script.
 
 Exciting extras!
 ================
