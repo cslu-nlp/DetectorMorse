@@ -110,7 +110,7 @@ class BinaryConfusion(object):
         print("""Truth | Guess
 ---------------------------------------
       |       Hit         Miss
- Hit  | {:>9,}    {:>9,}
+  Hit | {:>9,}    {:>9,}
  Miss | {:>9,}    {:>9,}""".format(self.tp, self.fn, self.fp, self.tn))
 
     @property

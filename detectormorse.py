@@ -72,13 +72,19 @@ observation = namedtuple("observation", ["L", "P", "Q", "S", "R", "end"])
 
 # helpers
 
-def candidates(filename):
+@IO
+def slurp(filename):
     """
-    Given a `filename`, get candidates and context for feature extraction 
-    and classification
+    Given a `filename` string, slurp the whole file into a string
     """
     with open(filename, "r") as source:
-        text = source.read()
+        return source.read()
+
+def candidates(text):
+    """
+    Given a `text` string, get candidates and context for feature 
+    extraction and classification
+    """
     for Pmatch in finditer(TARGET, text):
         (P, Q, S) = Pmatch.groups()
         start = Pmatch.start()
@@ -282,20 +288,22 @@ if __name__ == "__main__":
     detector = None
     if args.train:
         logging.info("Training model on '{}'.".format(args.train))
-        detector = Detector(args.train, T=args.T, nocase=args.nocase)
+        detector = Detector(slurp(args.train), T=args.T,
+                             nocase=args.nocase)
     elif args.read:
         logging.info("Reading pretrained model '{}'.".format(args.read))
         detector = IO(Detector.load)(args.read)
     # output block
     if args.segment:
         logging.info("Segmenting '{}'.".format(args.segment))
-        for segment in detector.segments(args.segment, nocase=args.nocase):
+        for segment in detector.segments(slurp(args.segment), 
+                                         nocase=args.nocase):
             print(segment)
     if args.write:
         logging.info("Writing model to '{}'.".format(args.write))
         IO(detector.dump)(args.write)
     elif args.evaluate:
         logging.info("Evaluating model on '{}'.".format(args.evaluate))
-        cx = detector.evaluate(args.evaluate, nocase=args.nocase)
+        cx = detector.evaluate(slurp(args.evaluate), nocase=args.nocase)
         cx.pprint()
         print(cx.summary)
