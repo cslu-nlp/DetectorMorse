@@ -92,6 +92,9 @@ def candidates(text):
         start = Pmatch.start()
         end = Pmatch.end()
         Lmatch = search(LTOKEN, text[max(0, start - BUFFER_SIZE):start])
+        if not Lmatch:
+            # this usually happens when a line begins with '.'
+            continue
         L = word_tokenize(" " + Lmatch.group())[-1]
         Rmatch = search(RTOKEN, text[end:end + BUFFER_SIZE])
         if not Rmatch: 
