@@ -55,7 +55,6 @@ LOWERCASE = frozenset(ascii_lowercase)
 UPPERCASE = frozenset(ascii_uppercase)
 LETTERS = LOWERCASE | UPPERCASE
 VOWELS = frozenset("AEIOU")
-SURETHANG = frozenset("!?")
 
 # regular expressions
 TARGET = r"([\.\!\?])([\'\`\"]*)(\s+)"
@@ -154,7 +153,7 @@ class Detector(JSONable):
                                             self.classifier)
 
     @listify
-    def extract_one(self, L, Q, R, nocase=NOCASE):
+    def extract_one(self, L, P, Q, R, nocase=NOCASE):
         """
         Extract features for a single observation of the form /L\.Q?\s+R/;
         Probability distributions for decile-based features will not be
@@ -181,6 +180,8 @@ class Detector(JSONable):
                 yield "(L:period)"
         Lfeat = "L='{}'".format(L)
         yield Lfeat
+        # the P identity feature
+        yield "P='{}'".format(P)
         # R features
         if match(NUMBER, R):
             R = NUMBER_TOKEN
@@ -201,14 +202,12 @@ class Detector(JSONable):
         X = []
         Y = []
         for (L, P, Q, S, R, _) in candidates(text):
-            if P in SURETHANG:
-                continue
-            X.append(self.extract_one(L, Q, R, nocase))
+            X.append(self.extract_one(L, P, Q, R, nocase))
             Y.append(bool(match(NEWLINE, S)))
         self.classifier.fit(X, Y, T)
 
-    def predict(self, L, Q, R, nocase=NOCASE):
-        x = self.extract_one(L, Q, R, nocase)
+    def predict(self, L, P, Q, R, nocase=NOCASE):
+        x = self.extract_one(L, P, Q, R, nocase)
         return self.classifier.predict(x)
 
     def segments(self, text, nocase=NOCASE):
@@ -217,7 +216,7 @@ class Detector(JSONable):
             # if there's already a newline there, we have nothing to do
             if match(NEWLINE, S):
                 continue
-            if P in SURETHANG or self.predict(L, Q, R, nocase):
+            if self.predict(L, P, Q, R, nocase):
                 yield text[start:end]
                 start = end
             # otherwise, there's probably not a sentence boundary here
@@ -232,7 +231,7 @@ class Detector(JSONable):
         cx = BinaryConfusion()
         for (L, P, Q, S, R, _) in candidates(text):
             gold = bool(match(NEWLINE, S))
-            guess = P in SURETHANG or self.predict(L, Q, R, nocase)
+            guess = self.predict(L, P, Q, R, nocase)
             cx.update(gold, guess)
         return cx
 
