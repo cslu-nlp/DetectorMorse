@@ -168,6 +168,8 @@ class Detector(JSONable):
         # L features
         if match(NUMBER, L):
             L = NUMBER_TOKEN
+        elif match(QUOTE, L):
+            L = QUOTE_TOKEN
         else:
             if not nocase:
                 yield "case(L)={}".format(token_case(L))
