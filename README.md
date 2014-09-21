@@ -6,7 +6,7 @@ DetectorMorse is a program for sentence boundary detection (henceforth, SBD), al
     Rolls-Royce Motor Cars Inc. said it expects its U.S. sales to remain
     steady at about 1,200 cars in 1990.
 
-This sentence contains 4 periods, but only the last denotes a sentence boundary. The first one in `U.S.` is unambiguously part of an acronym, not a sentence boundary; the same is true of expressions like `$12.53`. But the periods at the end of `Inc.` and `U.S.` both could easily denote a sentence boundary. Humans use the local context to determine that neither period denote sentence boundaries (e.g. the selectional properties of the verb _expect_ are not met if there is a sentence bounary immediately after `U.S.`). DetectorMorse uses artisinal, handcrafted contextual features and low-impact, leave-no-trace machine learning methods to automatically detect sentence boundaries.
+This sentence contains 4 periods, but only the last denotes a sentence boundary. The first one in `U.S.` is unambiguously part of an acronym, not a sentence boundary; the same is true of expressions like `$12.53`. But the periods at the end of `Inc.` and `U.S.` could easily denote a sentence boundary. Humans use the local context to determine that neither period denote sentence boundaries (e.g. the selectional properties of the verb _expect_ are not met if there is a sentence bounary immediately after `U.S.`). DetectorMorse uses artisinal, handcrafted contextual features and low-impact, leave-no-trace machine learning methods to automatically detect sentence boundaries.
 
 SBD is one of the earliest pieces of many natural language processing pipelines. Since errors at this step are likely to propagate, SBD is an important---albeit overlooked---problem in natural language processing.
 
@@ -46,7 +46,7 @@ When segmenting a file (`-s`/`--segment`), DetectorMorse simply inserts a newlin
 Method
 ======
 
-First, we extract the tokens to the left (L) and right (R) of `.`, `?`, or `!` (P).
+First, we extract the tokens to the left (L) and right (R) of the punctuation marks /[\.?!]/ (P).
 If these tokens match a regular expression for American English numbers (including prices, decimals, negatives, etc.), they are merged into a special token `*NUMBER*` (per Kiss & Strunk 2006).
 
 There are two groups of features that are extracted. The first pertains to whether the preceding word is likely to be an abbrevation or not. Intuitively, this lowers the probability that a sentence boundary is present. These features are:
@@ -78,7 +78,7 @@ These features are fed into an online classifier (the averaged perceptron; Freun
 Caveats
 =======
 
-DetectorMorse processes text by reading the entire file into memory. This means it will not work with files of a size that approaches or exceeds the available RAM. The easiest way to get around this is to import the `Detector` instance in your own Python script.
+DetectorMorse processes text by reading the entire file into memory. This means it will not work with files that won't fit into the available RAM. The easiest way to get around this is to import the `Detector` instance in your own Python script.
 
 Exciting extras!
 ================
@@ -90,7 +90,7 @@ References
 
 Y. Freund & R.E. Schapire. 1999. Large margin classification using the perceptron algorithm. _Machine Learning_ 37(3): 277-296.
 
-D. Gillick. 2009. Sentence boundary detection and the problem with the U.S. In _Proc. NAACL-HLT_, pages 241-244.
+D. Gillick. 2009. Sentence boundary detection and the problem with the U.S. In _Proceedings of NAACL-HLT_, pages 241-244.
 
 G. Grefenstette. 1999. Tokenization. In H. van Halteren (ed.), _Syntactic wordclass tagging_, pages 117-133. Dordrecht: Kluwer.
 
@@ -98,6 +98,6 @@ T. Kiss & J. Strunk. 2006. Unsupervised multilingual sentence boundary detection
 
 A. Mikheev. 2002. Periods, capitalized words, etc. _Computational Linguistics_ 28(3): 289-318.
 
-J.C. Reynar & A. Ratnaparkhi. 1997. A maximum entropy approach to identifying sentence boundaries. In _Proc. 5th Conference on Applied Natural Language Processing_, pages 16-19.
+J.C. Reynar & A. Ratnaparkhi. 1997. A maximum entropy approach to identifying sentence boundaries. In _Proceedings of the 5th Conference on Applied Natural Language Processing_, pages 16-19.
 
-M.D. Riley. 1989. Some applications of tree-based modelling to speech and language indexing. In _Proc. DARPA Speech and Natural Language Workshop_, pages 339-352.
+M.D. Riley. 1989. Some applications of tree-based modelling to speech and language indexing. In _Proceedings of the DARPA Speech and Natural Language Workshop_, pages 339-352.

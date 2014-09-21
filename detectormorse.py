@@ -193,8 +193,8 @@ class Detector(JSONable):
             yield "quantile(p(final|L))={}".format(self.q_Lfinal[L])
         # the P identity feature
         yield "P='{}'".format(P)
-        Lfeat = "L='{}'".format(L)
-        yield Lfeat
+        L_feat = "L='{}'".format(L)
+        yield L_feat
         # R features
         if match(QUOTE, R):
             R = QUOTE_TOKEN
@@ -202,16 +202,19 @@ class Detector(JSONable):
             R = NUMBER_TOKEN
         else:
             if not nocase:
-                yield "case(R)={}".format(Detector.token_case(R))
+                R_case_feat = Detector.token_case(R)
+                yield "case(R)={}".format(R_case_feat)
+                # FIXME feature idea
+                #yield "L='{}',case(R)={}".format(L_feat, R_case_feat)
             R = R.upper()
             yield "len(R)={}".format(len(R))
         if R in self.q_Rinitial:
-            yield "quantile(p(initial|R)={}".format(self.q_Rinitial[R])
+            yield "quantile(p(initial|R))={}".format(self.q_Rinitial[R])
         if R in self.q_R0upper:
-            yield "quantile(p(uppercase|R)={}".format(self.q_R0upper[R])
-        Rfeat = "R='{}'".format(R)
-        yield Rfeat
-        yield "{},{}".format(Lfeat, Rfeat)
+            yield "quantile(p(uppercase|R))={}".format(self.q_R0upper[R])
+        R_feat = "R='{}'".format(R)
+        yield R_feat
+        yield "{},{}".format(L_feat, R_feat)
 
     # helpers for `fit`
 
@@ -287,12 +290,13 @@ class Detector(JSONable):
         f_R0upper = defaultdict(binomial)
         for line in text.splitlines():
             (first, middle, last) = Detector._fit_first_middle_last(line)
-            # first; note that we don't do case here, as it's ambiguous
             if not first:
                 continue
             first_f = first.upper()
             f_Lfinal[first_f][False] += 1
             f_Rinitial[first_f][True] += 1
+            # note that we don't do R0upper initially, as case in this 
+            # position is inherently ambiguous
             # middle
             for token in middle:
                 token_f = token.upper()

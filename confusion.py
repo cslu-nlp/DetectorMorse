@@ -102,24 +102,23 @@ class BinaryConfusion(object):
         >>> cm.fp = cm.fn = 1
         >>> cm.pprint()
         Truth | Guess
-        ---------------------------------------
+        ------------------------------
               |       Hit         Miss
-         Hit  | 5,809,125            1
+          Hit | 5,809,125            1
          Miss |         1    2,235,458
         """
         print("""Truth | Guess
----------------------------------------
+------------------------------
       |       Hit         Miss
   Hit | {:>9,}    {:>9,}
  Miss | {:>9,}    {:>9,}""".format(self.tp, self.fn, self.fp, self.tn))
 
     @property
     def summary(self):
-        return """Accuracy:\t{:.04f}
-Precision:\t{:.04f}
-Recall:\t\t{:.04f}
-F1:\t\t{:.04f}""".format(self.accuracy, self.precision, self.recall,
-                         self.F1)
+        return "Accuracy:\t{:.04f}\n".format(self.accuracy)   + \
+               "Precision:\t{:.04f}\n".format(self.precision) + \
+               "Recall:\t\t{:.04f}\n".format(self.recall)     + \
+               "F1:\t\t{:.04f}\n".format(self.F1)
 
     def __len__(self):
         return self.tp + self.fp + self.fn + self.tn
