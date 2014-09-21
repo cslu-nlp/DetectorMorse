@@ -51,6 +51,8 @@ from decorators import reversify
 
 
 INF = float("inf")
+ORDER = 0
+EPOCHS = 1
 
 
 class Fit(object):
@@ -59,10 +61,10 @@ class Fit(object):
     Mixin for fitting method
     """
 
-    def fit(self, X, Y, T=1):
+    def fit(self, X, Y, epochs=EPOCHS):
         data = list(zip(X, Y))  # which is a copy
-        logging.info("Starting {} epochs of training.".format(T))
-        for i in range(1, 1 + T):
+        logging.info("Starting {} epoch(s) of training.".format(epochs))
+        for i in range(1, 1 + epochs):
             logging.info("Starting epoch {:>2}.".format(i))
             tic = time()
             accuracy = Accuracy()
@@ -187,10 +189,10 @@ class SequencePerceptron(Perceptron):
     Perceptron with Viterbi-decoding powers
     """
 
-    def __init__(self, *, tfeats_fnc=None, O=0, **kwargs):
+    def __init__(self, *, tfeats_fnc=None, order=ORDER, **kwargs):
         super(SequencePerceptron, self).__init__(**kwargs)
         self.tfeats_fnc = tfeats_fnc
-        self.O = O
+        self.order = order
 
     def predict(self, xx):
         """
@@ -216,7 +218,7 @@ class SequencePerceptron(Perceptron):
         `TrellisCell` elements, which contain the state score and a
         backpointer.
         """
-        if self.O <= 0:
+        if self.order <= 0:
             return self._markov0_trellis(xx)
         else:
             return self._viterbi_trellis(xx)
@@ -244,7 +246,7 @@ class SequencePerceptron(Perceptron):
         trellis = [{state: TrellisCell(score, None) for (state, score) in
                     self.scores(xx[0]).items()}]
         for x in xx[1:]:
-            pcolumns = trellis[-self.O:]
+            pcolumns = trellis[-elf.O:]
             # store previous state scores
             pscores = {state: score for (state, (score, pointer)) in
                        pcolumns[-1].items()}
@@ -281,14 +283,14 @@ class SequencePerceptron(Perceptron):
         for (i, (x, y, yhat)) in enumerate(zip(xx, yy, yyhat)):
             if y != yhat:
                 # add hypothesized t-features to observed e-features
-                x += self.tfeats_fnc(yyhat[i - self.O:i])
+                x += self.tfeats_fnc(yyhat[i - self.order:i])
                 self.update(x, y, yhat)
         return yyhat
 
-    def fit(self, XX, YY, T=1):
+    def fit(self, XX, YY, epochs=EPOCHS):
         data = list(zip(XX, YY))
-        logging.info("Starting {} epochs of training.".format(T))
-        for i in range(1, 1 + T):
+        logging.info("Starting {} epoch(s) of training.".format(epochs))
+        for i in range(1, 1 + epochs):
             logging.info("Starting epoch {:>2}.".format(i))
             tic = time()
             accuracy = Accuracy()
@@ -457,10 +459,10 @@ class AveragedPerceptron(Perceptron):
 
 class SequenceAveragedPerceptron(AveragedPerceptron, SequencePerceptron):
 
-    def __init__(self, *, tfeats_fnc=None, O=0, **kwargs):
+    def __init__(self, *, tfeats_fnc=None, order=ORDER, **kwargs):
         super(SequenceAveragedPerceptron, self).__init__(**kwargs)
         self.tfeats_fnc = tfeats_fnc
-        self.O = O
+        self.order = order
 
 
 if __name__ == "__main__":

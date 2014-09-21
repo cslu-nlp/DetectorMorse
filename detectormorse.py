@@ -184,7 +184,7 @@ class Detector(JSONable):
             if not nocase:
                 yield "case(L)={}".format(Detector.token_case(L))
             L = L.upper()
-            yield "len(L)={}".format(len(L))
+            yield "len(L)={}".format(min(10, len(L)))
             if not any(char in VOWELS for char in L):
                 yield "(L:no-vowel)"
             if "." in L:
