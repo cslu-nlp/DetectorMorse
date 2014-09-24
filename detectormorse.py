@@ -21,10 +21,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
+
 """
 DetectorMorse: supervised sentence boundary detection
 """
-
 
 import logging
 
@@ -37,7 +38,7 @@ from nltk import word_tokenize
 from jsonable import JSONable
 from decorators import listify, IO
 from confusion import BinaryConfusion
-from quantile import quantiles, nearest_quantile
+from quantile import quantile_breaks, get_quantile
 from perceptron import BinaryAveragedPerceptron as CLASSIFIER
 
 
@@ -245,8 +246,8 @@ class Detector(JSONable):
             denominator = numerator + cfd_token[False] + add_n
             retval[token] = numerator / denominator
         # convert probabilities with quantile values
-        Qs = quantiles(retval.values(), bins)
-        retval = {token: nearest_quantile(Qs, value) for
+        Qb = quantile_breaks(retval.values(), bins)
+        retval = {token: get_quantile(Qb, value) for
                    (token, value) in retval.items()}
         return retval
 

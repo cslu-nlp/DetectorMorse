@@ -26,22 +26,22 @@
 quantile: quantile estimation methods
 
 >>> x = [11.4, 17.3, 21.3, 25.9, 40.1, 50.5, 60., 70., 75.]
->>> qs = quantiles(x, 5)
->>> qs[1]
+>>> qe = quantile_estimates(x, 5)
+>>> qe[1]
 18.1
->>> q = nearest_quantile(qs, 20)
->>> qs[q]
-18.1
+>>> qb = quantile_breaks(x, 5)
+>>> get_quantile(qb, 20)
+1
 """
 
 from math import modf
-from bisect import bisect_left
+from bisect import bisect
 
 from decorators import listify
 
 
 @listify
-def quantiles(values, bins):
+def quantile_estimates(values, bins):
     """
     Compute sample quantile estimates for `bins` evenly spaced bins. The
     algorithm here is "#8" recommended in the following paper:
@@ -58,31 +58,32 @@ def quantiles(values, bins):
     if L < 2 or bins < 2:
         return
     yield svalues[0]
-    for i in range(1, bins - 1):
-        q = i / bins
+    for i in range(1, bins):
         (g, j) = modf(1 / 3 + (L + 1 / 3) * (i / bins) - 1)
         j = int(j)
         if g == 0:
             yield svalues[j]
         else:
             yield svalues[j] + (svalues[j + 1] - svalues[j]) * g
-    yield svalues[-1]
 
 
-def nearest_quantile(quantiles, value):
+@listify
+def quantile_breaks(values, bins):
+    """
+    Compute breakpoints between quantiles, to be used as an argument to
+    `nearest_quantile`.
+    """
+    estimates = quantile_estimates(values, bins)
+    for (q0, q1) in zip(estimates, estimates[1:]):
+        yield (q0 + q1) / 2
+    
+
+def get_quantile(quantiles, value):
     """
     Given a sorted list of estimated `quantiles`, compute the 0-based
     index of the closest quantile to an observed `value`
     """
-    i = bisect_left(quantiles, value)
-    if i == 0:
-        return 0
-    elif i == len(quantiles):
-        return i - 1
-    elif quantiles[i] - value > value - quantiles[i - 1]:
-        return i - 1
-    else:
-        return i
+    return bisect(quantiles, value)
 
 
 if __name__ == "__main__":
