@@ -45,9 +45,8 @@ from functools import partial
 from operator import itemgetter
 from collections import defaultdict, namedtuple
 
-from jsonable import JSONable
-from confusion import Accuracy
-from decorators import reversify
+from .confusion import Accuracy
+from .decorators import reversify
 
 
 INF = float("inf")
@@ -73,12 +72,12 @@ class Fit(object):
                 yhat = self.fit_one(x, y)
                 accuracy.update(y, yhat)
             logging.debug("Epoch {:>2} accuracy: {:.04f}.".format(i,
-                                                 accuracy.accuracy))
+                                                                  accuracy.accuracy))
             logging.debug("Epoch {:>2} time elapsed: {}s.".format(i,
-                                                 int(time() - tic)))
+                                                                  int(time() - tic)))
 
 
-class BinaryPerceptron(Fit, JSONable):
+class BinaryPerceptron(Fit):
 
     """
     Binary perceptron classifier
@@ -87,7 +86,7 @@ class BinaryPerceptron(Fit, JSONable):
     def __init__(self, *, seed=None):
         self.random = Random(seed)
         self.weights = defaultdict(int)
-    
+
     def score(self, x):
         return sum(self.weights[feature] for feature in x)
 
@@ -109,8 +108,7 @@ class BinaryPerceptron(Fit, JSONable):
             self.weights[feature] += tau
 
 
-
-class Perceptron(Fit, JSONable):
+class Perceptron(Fit):
 
     """
     The multiclass perceptron with sparse binary feature vectors:
@@ -246,7 +244,7 @@ class SequencePerceptron(Perceptron):
         trellis = [{state: TrellisCell(score, None) for (state, score) in
                     self.scores(xx[0]).items()}]
         for x in xx[1:]:
-            pcolumns = trellis[-elf.O:]
+            pcolumns = trellis[-self.order:]
             # store previous state scores
             pscores = {state: score for (state, (score, pointer)) in
                        pcolumns[-1].items()}
@@ -300,12 +298,12 @@ class SequencePerceptron(Perceptron):
                 for (y, yhat) in zip(yy, yyhat):
                     accuracy.update(y, yhat)
             logging.debug("Epoch {:>2} accuracy: {:.04f}.".format(i,
-                                                 accuracy.accuracy))
+                                                                  accuracy.accuracy))
             logging.debug("Epoch {:>2} time elapsed: {}s.".format(i,
-                                                 int(time() - tic)))
+                                                                  int(time() - tic)))
 
 
-class LazyWeight(JSONable):
+class LazyWeight(object):
 
     """
     Helper class for `AveragedPerceptron`:

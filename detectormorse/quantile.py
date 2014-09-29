@@ -37,7 +37,7 @@ quantile: quantile estimation methods
 from math import modf
 from bisect import bisect
 
-from decorators import listify
+from .decorators import listify
 
 
 @listify

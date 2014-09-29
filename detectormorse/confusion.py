@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -O
 #
 # Copyright (c) 2013-2014 Kyle Gorman
 #
@@ -20,10 +20,9 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- 
-"""
-confusion: confusion matrices and summary statistics
-"""
+#
+# confusion.py: confusion matrices and summary statistics
+
 
 from math import sqrt
 from functools import partial
@@ -73,7 +72,7 @@ class Accuracy(object):
 
     @property
     def accuracy(self):
-        return self.correct / (self.correct + self.incorrect)
+        return self.correct / len(self)
 
 
 class BinaryConfusion(object):
@@ -102,23 +101,16 @@ class BinaryConfusion(object):
         >>> cm.fp = cm.fn = 1
         >>> cm.pprint()
         Truth | Guess
-        ------------------------------
+        ---------------------------------------
               |       Hit         Miss
-          Hit | 5,809,125            1
+         Hit  | 5,809,125            1
          Miss |         1    2,235,458
         """
         print("""Truth | Guess
-------------------------------
+---------------------------------------
       |       Hit         Miss
-  Hit | {:>9,}    {:>9,}
+ Hit  | {:>9,}    {:>9,}
  Miss | {:>9,}    {:>9,}""".format(self.tp, self.fn, self.fp, self.tn))
-
-    @property
-    def summary(self):
-        return "Accuracy:\t{:.04f}\n".format(self.accuracy)   + \
-               "Precision:\t{:.04f}\n".format(self.precision) + \
-               "Recall:\t\t{:.04f}\n".format(self.recall)     + \
-               "F1:\t\t{:.04f}\n".format(self.F1)
 
     def __len__(self):
         return self.tp + self.fp + self.fn + self.tn

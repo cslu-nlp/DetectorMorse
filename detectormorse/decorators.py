@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -O
 #
 # Copyright (C) 2014 Kyle Gorman
 #
@@ -20,24 +20,13 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# decorators.py: decorators for library
 
-"""
-decorators.py: simple decorator library
-"""
 
 import logging
 
 from functools import wraps
-
-
-def dictify(gen):
-    """
-    Convert a generator of (key, value) tuples into a dictionary
-    """
-    @wraps(gen)
-    def patch(*args, **kwargs):
-        return dict(gen(*args, **kwargs))
-    return patched
 
 
 def listify(gen):
@@ -62,6 +51,31 @@ def reversify(fnc):
         retval = list(fnc(*args, **kwargs))
         retval.reverse()
         return retval
+    return patched
+
+
+def setify(gen):
+    """
+    Convert a generator into a function which returns a set
+    """
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        return set(gen(*args, **kwargs))
+    return patched
+
+
+def meanify(gen):
+    """
+    Convert a generator of numbers to one which returns the mean value, 
+    iteratively computed to avoid overflow. This algorithm is recommended 
+    by Knuth (AoCP, 2.4.2.2).
+    """
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        avg = 0
+        for (i, val) in enumerate(gen(*args, **kwargs), 1):
+            avg += (val - avg) / i
+        return avg
     return patched
 
 
