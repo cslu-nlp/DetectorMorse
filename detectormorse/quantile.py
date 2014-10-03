@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright (c) 2014 Kyle Gorman
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -37,7 +35,7 @@ quantile: quantile estimation methods
 from math import modf
 from bisect import bisect
 
-from .decorators import listify
+from nlup.decorators import listify
 
 
 @listify

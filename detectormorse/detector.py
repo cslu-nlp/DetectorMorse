@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright (c) 2014 Kyle Gorman <gormanky@ohsu.edu>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -30,11 +28,12 @@ from string import ascii_lowercase, ascii_uppercase, digits
 
 from nltk import word_tokenize
 
-from .jsonable import JSONable
-from .decorators import listify, IO
-from .confusion import BinaryConfusion
+from nlup.confusion import BinaryConfusion
+from nlup.decorators import listify, IO
+from nlup.jsonable import JSONable
+from nlup.perceptron import BinaryAveragedPerceptron as CLASSIFIER
+
 from .quantile import quantile_breaks, get_quantile
-from .perceptron import BinaryAveragedPerceptron as CLASSIFIER
 
 
 # defaults

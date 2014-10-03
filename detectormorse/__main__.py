@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright (c) 2014 Kyle Gorman <gormanky@ohsu.edu>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -21,17 +19,20 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
 import logging
 
-from .decorators import IO
+from nlup.decorators import IO
 from .detector import Detector, BINS, EPOCHS, slurp
+
 
 LOGGING_FMT = "%(module)s: %(message)s"
 
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
-    argparser = ArgumentParser(description="DetectorMorse, by Kyle Gorman")
+    argparser = ArgumentParser(description="DetectorMorse, by Kyle Gorman",
+                               prog="python -m detectormorse")
     argparser.add_argument("-v", "--verbose", action="store_true",
                            help="enable verbose output")
     argparser.add_argument("-V", "--really-verbose", action="store_true",
