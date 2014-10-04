@@ -33,7 +33,7 @@ Usage
                              write out serialized model
        -e EVALUATE, --evaluate EVALUATE
                              evaluate on segmented data
-       -B BINS, --bins BINS  # of bins (default: 5)
+       -B BINS, --bins BINS  # of bins (default: 10)
        -E EPOCHS, --epochs EPOCHS
                              # of epochs (default: 20)
        -C, --nocase          disable case features

@@ -39,7 +39,7 @@ from .quantile import quantile_breaks, get_quantile
 # defaults
 NOCASE = False  # disable case-based features?
 ADD_N = 1       # Laplace smoothing constant
-BINS = 5        # number of quantile bins (for discretizing features)
+BINS = 10       # number of quantile bins (for discretizing features)
 EPOCHS = 20     # number of epochs (iterations for classifier training)
 
 BUFFER_SIZE = 128  # for reading in left and right contexts...see below
@@ -118,44 +118,6 @@ class Detector(JSONable):
 
     # extract features
 
-    @staticmethod
-    def token_case(string):
-        """
-        Compute one of six "cases" for a token:
-        * number: is the NUMBER_TOKEN or contains a digit
-        * punctuation: is the QUOTE_TOKEN or contains no alphabetic
-          characters
-        * upper: all alphabetic characters are uppercase
-        * lower: all alphabetic characters are lowercase
-        * title: first alphabetic character uppercase, later alphabetic
-                 characters lowercase
-        * mixed: none of the above
-        """
-        # TODO possible improvements/tweaks:
-        #     * should we just look at the first letter, merging mixed with
-        #       upper and lower, and merging upper and title?
-        #     * should there be 2 features, one for the first letter and
-        #       another for the rest-of-word?
-        #     * should this be an instance method
-        if string == NUMBER_TOKEN or any(ch in DIGITS for ch in string):
-            return "number"
-        # remove non-alphabetic characters
-        rstring = "".join(ch for ch in string if ch in LETTERS)
-        # if there aren't any, it's punctuation
-        if string == QUOTE_TOKEN or not rstring:
-            return "punctuation"
-        if rstring[0] in UPPERCASE:
-            if all(char in UPPERCASE for char in rstring[1:]):
-                return "upper"
-                # note that one-letter tokens will pass this test, and so
-                # be coded as uppercase, not titlecase
-            elif all(char in LOWERCASE for char in rstring[1:]):
-                return "title"
-            # mixed
-        if all(char in LOWERCASE for char in rstring):
-            return "lower"
-        return "mixed"
-
     @listify
     def extract_one(self, L, P, Q, R, nocase=NOCASE):
         """
@@ -173,9 +135,14 @@ class Detector(JSONable):
             L = QUOTE_TOKEN
         elif match(NUMBER, L):
             L = NUMBER_TOKEN
+        elif not any(char in LETTERS for char in L):
+            yield "(L:punctuation)"
         else:
             if not nocase:
-                yield "case(L)={}".format(Detector.token_case(L))
+                if any(char in UPPERCASE for char in L):
+                    yield "(L:uppercase)"
+                    if L[0] in UPPERCASE:
+                        yield "(L_0:uppercase)"
             L = L.upper()
             yield "len(L)={}".format(min(10, len(L)))
             if not any(char in VOWELS for char in L):
@@ -193,12 +160,14 @@ class Detector(JSONable):
             R = QUOTE_TOKEN
         elif match(NUMBER, R):
             R = NUMBER_TOKEN
+        elif not any(char in LETTERS for char in L):
+            yield "(R:punctuation)"
         else:
             if not nocase:
-                R_case_feat = Detector.token_case(R)
-                yield "case(R)={}".format(R_case_feat)
-                # FIXME feature idea
-                #yield "L='{}',case(R)={}".format(L_feat, R_case_feat)
+                if any(char in UPPERCASE for char in R):
+                    yield "(R:uppercase)"
+                    if R[0] in UPPERCASE:
+                        yield "(R_0:uppercase)"
             R = R.upper()
             yield "len(R)={}".format(len(R))
         if R in self.q_Rinitial:
