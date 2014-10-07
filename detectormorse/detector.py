@@ -22,6 +22,7 @@
 
 import logging
 
+from math import log # FIXME
 from collections import defaultdict, namedtuple
 from re import escape, finditer, match, search, sub
 from string import ascii_lowercase, ascii_uppercase, digits
@@ -68,6 +69,12 @@ QUOTE = r"[\"\'\`]+"
 
 QUOTE_TOKEN = "*QUOTE*"
 NUMBER_TOKEN = "*NUMBER*"
+
+# inf
+
+INF = float("inf")
+
+# observation tuple
 
 observation = namedtuple("observation", ["L", "P", "Q", "S", "R", "end"])
 
@@ -151,6 +158,9 @@ class Detector(JSONable):
                 yield "(L:period)"
         if L in self.q_Lfinal:
             yield "quantile(p(final|L))={}".format(self.q_Lfinal[L])
+        # FIXME
+        #if L in self.c_Lfinal:
+        #     yield "log(f(final|L))={}".format(self.c_Lfinal[L])
         # the P identity feature
         yield "P='{}'".format(P)
         L_feat = "L='{}'".format(L)
@@ -174,6 +184,11 @@ class Detector(JSONable):
             yield "quantile(p(initial|R))={}".format(self.q_Rinitial[R])
         if R in self.q_R0upper:
             yield "quantile(p(uppercase|R))={}".format(self.q_R0upper[R])
+        # FIXME
+        #if R in self.c_Rinitial:
+        #    yield "log(f(initial|R))={}".format(self.c_Rinitial[R])
+        #if R in self.c_R0upper:
+        #    yield "log(f(uppercase|R))={}".format(self.c_R0upper[R])
         R_feat = "R='{}'".format(R)
         yield R_feat
         yield "{},{}".format(L_feat, R_feat)
@@ -211,6 +226,17 @@ class Detector(JSONable):
         retval = {token: get_quantile(Qb, value) for
                    (token, value) in retval.items()}
         return retval
+
+    # FIXME
+    """
+    @staticmethod
+    def _fit_freqs2logcounts(cfd, base=2):
+        retval = {}
+        for (token, cfd_token) in cfd.items():
+            count = cfd_token[True]
+            retval[token] = min(10, int(log(count)) if count else -INF)
+        return retval
+    """
 
     @staticmethod
     def _fit_first_middle_last(line):
@@ -279,6 +305,10 @@ class Detector(JSONable):
         self.q_Lfinal = Detector._fit_freqs2quants(f_Lfinal, bins=bins)
         self.q_Rinitial = Detector._fit_freqs2quants(f_Rinitial, bins=bins)
         self.q_R0upper = Detector._fit_freqs2quants(f_R0upper, bins=bins)
+        # FIXME
+        #self.c_Lfinal = Detector._fit_freqs2logcounts(f_Lfinal)
+        #self.c_Rinitial = Detector._fit_freqs2logcounts(f_Rinitial)
+        #self.c_R0upper = Detector._fit_freqs2logcounts(f_R0upper)
         logging.debug("Extracting features and classifications.")
         X = []
         Y = []
