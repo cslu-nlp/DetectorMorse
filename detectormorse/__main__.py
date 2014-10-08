@@ -72,15 +72,14 @@ if __name__ == "__main__":
     # output block
     if args.segment:
         logging.info("Segmenting '{}'.".format(args.segment))
-        for segment in detector.segments(slurp(args.segment),
-                                         nocase=args.nocase):
+        for segment in detector.segments(slurp(args.segment)):
             print(segment)
     if args.write:
         logging.info("Writing model to '{}'.".format(args.write))
         IO(detector.dump)(args.write)
     elif args.evaluate:
         logging.info("Evaluating model on '{}'.".format(args.evaluate))
-        cx = detector.evaluate(slurp(args.evaluate), nocase=args.nocase)
+        cx = detector.evaluate(slurp(args.evaluate))
         if args.verbose or args.really_verbose:
             cx.pprint()
         print(cx.summary)

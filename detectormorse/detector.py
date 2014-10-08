@@ -93,8 +93,9 @@ class Detector(JSONable):
     def __init__(self, text=None, nocase=NOCASE, epochs=EPOCHS,
                  bins=BINS, classifier=CLASSIFIER, **kwargs):
         self.classifier = classifier(**kwargs)
+        self.nocase = nocase
         if text:
-            self.fit(text, nocase, epochs, bins)
+            self.fit(text, epochs, bins)
 
     def __repr__(self):
         return "{}(classifier={!r})".format(self.__class__.__name__,
@@ -126,7 +127,7 @@ class Detector(JSONable):
     # extract features
 
     @listify
-    def extract_one(self, L, P, Q, R, nocase=NOCASE):
+    def extract_one(self, L, P, Q, R):
         """
         Given an observation (left context `L`, punctuation marker `P`,
         quote string `Q`, and right context `R`), extract the classifier
@@ -135,6 +136,7 @@ class Detector(JSONable):
         """
         yield "(bias)"
         # is L followed by one or more quotes?
+        """
         if Q:
             yield "(quote)"
         # L features
@@ -143,9 +145,10 @@ class Detector(JSONable):
         elif match(NUMBER, L):
             L = NUMBER_TOKEN
         elif not any(char in LETTERS for char in L):
-            yield "(L:punctuation)"
+            pass # FIXME
+            #yield "(L:punctuation)"
         else:
-            if not nocase:
+            if not self.nocase:
                 if any(char in UPPERCASE for char in L):
                     yield "(L:uppercase)"
                     if L[0] in UPPERCASE:
@@ -166,20 +169,25 @@ class Detector(JSONable):
         L_feat = "L='{}'".format(L)
         yield L_feat
         # R features
+        """
         if match(QUOTE, R):
             R = QUOTE_TOKEN
         elif match(NUMBER, R):
             R = NUMBER_TOKEN
         elif not any(char in LETTERS for char in L):
-            yield "(R:punctuation)"
+            pass # FIXME
+            #yield "(R:punctuation)"
         else:
-            if not nocase:
+            """
+            if not self.nocase:
                 if any(char in UPPERCASE for char in R):
                     yield "(R:uppercase)"
                     if R[0] in UPPERCASE:
                         yield "(R_0:uppercase)"
+            """
             R = R.upper()
             yield "len(R)={}".format(len(R))
+        """
         if R in self.q_Rinitial:
             yield "quantile(p(initial|R))={}".format(self.q_Rinitial[R])
         if R in self.q_R0upper:
@@ -192,6 +200,7 @@ class Detector(JSONable):
         R_feat = "R='{}'".format(R)
         yield R_feat
         yield "{},{}".format(L_feat, R_feat)
+        """
 
     # helpers for `fit`
 
@@ -265,7 +274,7 @@ class Detector(JSONable):
 
     # actual detector operations
 
-    def fit(self, text, nocase=NOCASE, epochs=EPOCHS, bins=BINS):
+    def fit(self, text, epochs=EPOCHS, bins=BINS):
         """
         Given a string `text`, use it to train the segmentation classifier
         for `epochs` iterations.
@@ -313,12 +322,12 @@ class Detector(JSONable):
         X = []
         Y = []
         for (L, P, Q, S, R, _) in Detector.candidates(text):
-            X.append(self.extract_one(L, P, Q, R, nocase))
+            X.append(self.extract_one(L, P, Q, R))
             Y.append(bool(match(NEWLINE, S)))
         self.classifier.fit(X, Y, epochs)
         logging.debug("Fitting complete.")
 
-    def predict(self, L, P, Q, R, nocase=NOCASE):
+    def predict(self, L, P, Q, R):
         """
         Given an observation (left context `L`, punctuation marker `P`,
         quote string `Q`, and right context `R`), return True iff
@@ -326,10 +335,10 @@ class Detector(JSONable):
 
         This presumes the model has already been fit.
         """
-        x = self.extract_one(L, P, Q, R, nocase)
+        x = self.extract_one(L, P, Q, R)
         return self.classifier.predict(x)
 
-    def segments(self, text, nocase=NOCASE):
+    def segments(self, text):
         """
         Given a string of `text`, return a generator yielding each
         hypothesized sentence string
@@ -339,13 +348,13 @@ class Detector(JSONable):
             # if there's already a newline there, we have nothing to do
             if match(NEWLINE, S):
                 continue
-            if self.predict(L, P, Q, R, nocase):
+            if self.predict(L, P, Q, R):
                 yield text[start:end]
                 start = end
             # otherwise, there's probably not a sentence boundary here
         yield text[start:]
 
-    def evaluate(self, text, nocase=NOCASE):
+    def evaluate(self, text):
         """
         Given a string of `text`, compute confusion matrix for the
         classification task.
@@ -353,6 +362,6 @@ class Detector(JSONable):
         cx = BinaryConfusion()
         for (L, P, Q, S, R, _) in Detector.candidates(text):
             gold = bool(match(NEWLINE, S))
-            guess = self.predict(L, P, Q, R, nocase)
+            guess = self.predict(L, P, Q, R)
             cx.update(gold, guess)
         return cx
