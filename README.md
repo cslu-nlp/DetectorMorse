@@ -16,7 +16,7 @@ Usage
 =====
 
      usage: detectormorse.py [-h] [-v] [-V] (-t TRAIN | -r READ)
-                             (-s SEGMENT | -w WRITE | -e EVALUATE) [-C] [-T T]
+               (-s SEGMENT | -w WRITE | -e EVALUATE) [-C] [-T T]
      
      Detector Morse, by Kyle Gorman
      
@@ -45,7 +45,7 @@ When segmenting a file (`-s`/`--segment`), DetectorMorse simply inserts a newlin
 Method
 ======
 
-More.
+More to come.
 
 Caveats
 =======

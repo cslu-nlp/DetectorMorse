@@ -37,7 +37,6 @@ from nlup.perceptron import BinaryAveragedPerceptron as CLASSIFIER
 # defaults
 
 NOCASE = False  # disable case-based features?
-ADD_N = 1       # Laplace smoothing constant
 EPOCHS = 20     # number of epochs (iterations for classifier training)
 BUFSIZE = 128   # for reading in left and right contexts...see below
 
