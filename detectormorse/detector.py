@@ -22,9 +22,8 @@
 
 import logging
 
-from math import log # FIXME
+from re import finditer, match, search, sub
 from collections import defaultdict, namedtuple
-from re import escape, finditer, match, search, sub
 from string import ascii_lowercase, ascii_uppercase, digits
 
 from nltk import word_tokenize
@@ -38,12 +37,12 @@ from .quantile import quantile_breaks, get_quantile
 
 
 # defaults
+
 NOCASE = False  # disable case-based features?
 ADD_N = 1       # Laplace smoothing constant
-BINS = 10       # number of quantile bins (for discretizing features)
+BINS = 20       # number of quantile bins (for discretizing features)
 EPOCHS = 20     # number of epochs (iterations for classifier training)
-
-BUFFER_SIZE = 128  # for reading in left and right contexts...see below
+BUFSIZE = 128   # for reading in left and right contexts...see below
 
 # character classes
 
@@ -51,12 +50,17 @@ DIGITS = frozenset(digits)
 LOWERCASE = frozenset(ascii_lowercase)
 UPPERCASE = frozenset(ascii_uppercase)
 LETTERS = LOWERCASE | UPPERCASE
-VOWELS = frozenset("AEIOU")
+VOWELS = frozenset("AEIOUY")
 
-# regular expressions
+# token classes
 
-PUNCT = frozenset(".!?")
-TARGET = r"([{}])([\'\`\"]*)(\s+)".format(escape("".join(PUNCT)))
+QUOTE_TOKEN = "*QUOTE*"
+NUMBER_TOKEN = "*NUMBER*"
+
+# regexs
+
+PUNCT = r"((\.+)|([!?]))"
+TARGET = PUNCT + r"[\'\`\"]*(\s+)"
 
 LTOKEN = r"\S+$"
 RTOKEN = r"^\S+"
@@ -65,18 +69,9 @@ NEWLINE = r"^\s*[\r\n]+\s*$"
 NUMBER = r"^(\-?\$?)(\d+(\,\d{3})*([\-\/\:\.]\d+)?)\%?$"
 QUOTE = r"[\"\'\`]+"
 
-# special tokens
+# other
 
-QUOTE_TOKEN = "*QUOTE*"
-NUMBER_TOKEN = "*NUMBER*"
-
-# inf
-
-INF = float("inf")
-
-# observation tuple
-
-observation = namedtuple("observation", ["L", "P", "Q", "S", "R", "end"])
+Observation = namedtuple("Observation", ["L", "S", "R", "end"])
 
 
 @IO
@@ -110,97 +105,67 @@ class Detector(JSONable):
         extraction and classification
         """
         for Pmatch in finditer(TARGET, text):
-            (P, Q, S) = Pmatch.groups()
+            P = Pmatch.group(1)
+            S = Pmatch.group(4)
             start = Pmatch.start()
             end = Pmatch.end()
-            Lmatch = search(LTOKEN,
-                            text[max(0, start - BUFFER_SIZE):start])
+            Lmatch = search(LTOKEN, text[max(0, start - BUFSIZE):start])
             if not Lmatch:  # this happens when a line begins with '.'
                 continue
             L = word_tokenize(" " + Lmatch.group())[-1]
-            Rmatch = search(RTOKEN, text[end:end + BUFFER_SIZE])
-            if not Rmatch:  # this happens at the end of the document
+            Rmatch = search(RTOKEN, text[end:end + BUFSIZE])
+            if not Rmatch:  # this happens at the end of the file, usually
                 continue
             R = word_tokenize(Rmatch.group() + " ")[0]
-            yield observation(L, P, Q, S, R, end)
+            yield Observation(L, S, R, end)
 
     # extract features
 
     @listify
-    def extract_one(self, L, P, Q, R):
+    def extract_one(self, L, R):
         """
-        Given an observation (left context `L`, punctuation marker `P`,
-        quote string `Q`, and right context `R`), extract the classifier
-        features. Probability distributions for decile-based features
-        will not be modified.
+        Given left context `L` and right context `R`, extract features. 
+        Probability distributions for decile-based features will not be 
+        modified.
         """
         yield "(bias)"
-        # is L followed by one or more quotes?
-        """
-        if Q:
-            yield "(quote)"
         # L features
         if match(QUOTE, L):
             L = QUOTE_TOKEN
         elif match(NUMBER, L):
             L = NUMBER_TOKEN
-        elif not any(char in LETTERS for char in L):
-            pass # FIXME
-            #yield "(L:punctuation)"
         else:
-            if not self.nocase:
-                if any(char in UPPERCASE for char in L):
-                    yield "(L:uppercase)"
-                    if L[0] in UPPERCASE:
-                        yield "(L_0:uppercase)"
-            L = L.upper()
             yield "len(L)={}".format(min(10, len(L)))
-            if not any(char in VOWELS for char in L):
-                yield "(L:no-vowel)"
             if "." in L:
                 yield "(L:period)"
+            if not self.nocase:
+                if Detector._fit_case(L):
+                    yield "(L_0:upper)"
+            L = L.upper()
+            if L in self.q_upper:
+                yield "quantile(p(upper|L_0))={}".format(self.q_upper[L])
+            if not any(char in VOWELS for char in L):
+                yield "(L:no-vowel)"
         if L in self.q_Lfinal:
             yield "quantile(p(final|L))={}".format(self.q_Lfinal[L])
-        # FIXME
-        #if L in self.c_Lfinal:
-        #     yield "log(f(final|L))={}".format(self.c_Lfinal[L])
-        # the P identity feature
-        yield "P='{}'".format(P)
         L_feat = "L='{}'".format(L)
         yield L_feat
         # R features
-        """
         if match(QUOTE, R):
             R = QUOTE_TOKEN
         elif match(NUMBER, R):
             R = NUMBER_TOKEN
-        elif not any(char in LETTERS for char in L):
-            pass # FIXME
-            #yield "(R:punctuation)"
         else:
-            """
             if not self.nocase:
-                if any(char in UPPERCASE for char in R):
-                    yield "(R:uppercase)"
-                    if R[0] in UPPERCASE:
-                        yield "(R_0:uppercase)"
-            """
+                if Detector._fit_case(R):
+                    yield "(R_0:upper)"
             R = R.upper()
-            yield "len(R)={}".format(len(R))
-        """
-        if R in self.q_Rinitial:
-            yield "quantile(p(initial|R))={}".format(self.q_Rinitial[R])
-        if R in self.q_R0upper:
-            yield "quantile(p(uppercase|R))={}".format(self.q_R0upper[R])
-        # FIXME
-        #if R in self.c_Rinitial:
-        #    yield "log(f(initial|R))={}".format(self.c_Rinitial[R])
-        #if R in self.c_R0upper:
-        #    yield "log(f(uppercase|R))={}".format(self.c_R0upper[R])
+            if R in self.q_upper:
+                yield "quantile(p(upper|R_0))={}".format(self.q_upper[R])
         R_feat = "R='{}'".format(R)
         yield R_feat
+        # the combined L,R feature
         yield "{},{}".format(L_feat, R_feat)
-        """
 
     # helpers for `fit`
 
@@ -233,31 +198,20 @@ class Detector(JSONable):
         # convert probabilities with quantile values
         Qb = quantile_breaks(retval.values(), bins)
         retval = {token: get_quantile(Qb, value) for
-                   (token, value) in retval.items()}
+                 (token, value) in retval.items()}
         return retval
-
-    # FIXME
-    """
-    @staticmethod
-    def _fit_freqs2logcounts(cfd, base=2):
-        retval = {}
-        for (token, cfd_token) in cfd.items():
-            count = cfd_token[True]
-            retval[token] = min(10, int(log(count)) if count else -INF)
-        return retval
-    """
 
     @staticmethod
     def _fit_first_middle_last(line):
         tokens = [Detector._fit_merge_token(token) for
-                                            token in word_tokenize(line)]
+                  token in word_tokenize(line)]
         if not tokens:
             return (None, [], None)
         first = tokens.pop(0)
         if not tokens:
             return (first, [], None)
         last = tokens.pop()
-        if last in PUNCT:
+        if match(PUNCT, last):
             if not tokens:
                 return (first, [], None)
             last = tokens.pop()
@@ -281,61 +235,45 @@ class Detector(JSONable):
         """
         logging.debug("Computing quantiles for probabilistic features.")
         # compute conditional frequencies
-        binomial = lambda: {True: 0, False: 0}
-        f_Lfinal = defaultdict(binomial)
-        f_Rinitial = defaultdict(binomial)
-        f_R0upper = defaultdict(binomial)
+        f_Lfinal = defaultdict(lambda: {True: 0, False: 0})
+        f_upper = defaultdict(lambda: {True: 0, False: 0})
         for line in text.splitlines():
             (first, middle, last) = Detector._fit_first_middle_last(line)
             if not first:
                 continue
             first_f = first.upper()
             f_Lfinal[first_f][False] += 1
-            f_Rinitial[first_f][True] += 1
-            # note that we don't do R0upper initially, as case in this 
-            # position is inherently ambiguous
-            # middle
+            # case is ambiguous here...
             for token in middle:
                 token_f = token.upper()
                 case = Detector._fit_case(token)
                 if case is not None:
-                    f_R0upper[token_f][case] += 1
+                    f_upper[token_f][case] += 1
                 f_Lfinal[token_f][False] += 1
-                f_Rinitial[token_f][False] += 1
-            # last
             if not last:
                 continue
             last_f = last.upper()
             case = Detector._fit_case(last)
             if case is not None:
-                f_R0upper[last_f][case] += 1
+                f_upper[last_f][case] += 1
             f_Lfinal[last_f][True] += 1
-            f_Rinitial[last_f][False] += 1
-        self.q_Lfinal = Detector._fit_freqs2quants(f_Lfinal, bins=bins)
-        self.q_Rinitial = Detector._fit_freqs2quants(f_Rinitial, bins=bins)
-        self.q_R0upper = Detector._fit_freqs2quants(f_R0upper, bins=bins)
-        # FIXME
-        #self.c_Lfinal = Detector._fit_freqs2logcounts(f_Lfinal)
-        #self.c_Rinitial = Detector._fit_freqs2logcounts(f_Rinitial)
-        #self.c_R0upper = Detector._fit_freqs2logcounts(f_R0upper)
+        self.q_Lfinal = Detector._fit_freqs2quants(f_Lfinal, bins)
+        self.q_upper = Detector._fit_freqs2quants(f_upper, bins)
         logging.debug("Extracting features and classifications.")
         X = []
         Y = []
-        for (L, P, Q, S, R, _) in Detector.candidates(text):
-            X.append(self.extract_one(L, P, Q, R))
+        for (L, S, R, _) in Detector.candidates(text):
+            X.append(self.extract_one(L, R))
             Y.append(bool(match(NEWLINE, S)))
         self.classifier.fit(X, Y, epochs)
         logging.debug("Fitting complete.")
 
-    def predict(self, L, P, Q, R):
+    def predict(self, L, R):
         """
-        Given an observation (left context `L`, punctuation marker `P`,
-        quote string `Q`, and right context `R`), return True iff
+        Given an left context `L` and right context `R`, return True iff u
         this observation is hypothesized to be a sentence boundary.
-
-        This presumes the model has already been fit.
         """
-        x = self.extract_one(L, P, Q, R)
+        x = self.extract_one(L, R)
         return self.classifier.predict(x)
 
     def segments(self, text):
@@ -344,11 +282,11 @@ class Detector(JSONable):
         hypothesized sentence string
         """
         start = 0
-        for (L, P, Q, S, R, end) in Detector.candidates(text):
+        for (L, S, R, end) in Detector.candidates(text):
             # if there's already a newline there, we have nothing to do
             if match(NEWLINE, S):
                 continue
-            if self.predict(L, P, Q, R):
+            if self.predict(L, R):
                 yield text[start:end]
                 start = end
             # otherwise, there's probably not a sentence boundary here
@@ -360,8 +298,12 @@ class Detector(JSONable):
         classification task.
         """
         cx = BinaryConfusion()
-        for (L, P, Q, S, R, _) in Detector.candidates(text):
+        for (L, S, R, _) in Detector.candidates(text):
             gold = bool(match(NEWLINE, S))
-            guess = self.predict(L, P, Q, R)
+            guess = self.predict(L, R)
             cx.update(gold, guess)
+            if not gold and guess:
+                logging.debug("False pos.: L='{}', R='{}'.".format(L, R))
+            elif gold and not guess:
+                logging.debug("False neg.: L='{}', R='{}'.".format(L, R))
         return cx
