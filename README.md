@@ -33,7 +33,6 @@ Usage
                              write out serialized model
        -e EVALUATE, --evaluate EVALUATE
                              evaluate on segmented data
-       -B BINS, --bins BINS  # of bins (default: 10)
        -E EPOCHS, --epochs EPOCHS
                              # of epochs (default: 20)
        -C, --nocase          disable case features
@@ -51,25 +50,17 @@ If these tokens match a regular expression for American English numbers (includi
 
 There are two groups of features that are extracted. The first pertains to whether the preceding word is likely to be an abbrevation or not. Intuitively, this lowers the probability that a sentence boundary is present. These features are:
 
-* identity of P
 * identity of L (Reynar & Ratnaparkhi 1997)
 * does L contain a vowel? (Mikheev 2002)
 * does L contain a period? (Grefenstette 1999)
 * length of L (Riley 1989)
-* case of L (Riley 1989)
 
 The second group pertains directly to whether this is likely to be a sentence boundary (some are repeated from before):
 
-* identity of P
 * identity of L (Reynar & Ratnaparkhi 1997)
 * is L followed by any quote characters?
 * joint identity of L and R (Reynar & Ratnaparkhi 1997)
 * case of R (Riley 1989)
-* (quantized) probability of L being final (after Gillick 2009)
-* (quantized) probability of R being initial (after Riley 1989)
-* (quantized) probability of R being uppercase (after Gillick 2009)
-
-The `-B`/`--bins` flag controls the granularity of the quantization.
 
 When the text to be classified is not mixed case, the `-C`/`--nocase` flag can be used to disable the use of case features. However, this does not disable the last listed feature, the the probability of R being uppercase, as this feature might still be informative if the model is trained on mixed-case text and used to classify single-case text.
 

@@ -23,7 +23,7 @@
 import logging
 
 from nlup.decorators import IO
-from .detector import Detector, BINS, EPOCHS, slurp
+from .detector import Detector, slurp, EPOCHS
 
 
 LOGGING_FMT = "%(module)s: %(message)s"
@@ -31,27 +31,26 @@ LOGGING_FMT = "%(module)s: %(message)s"
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
-    argparser = ArgumentParser(description="DetectorMorse, by Kyle Gorman",
-                               prog="python -m detectormorse")
+    argparser = ArgumentParser(prog="python -m detectormorse",
+              description="Detector Morse, by Kyle Gorman")
     argparser.add_argument("-v", "--verbose", action="store_true",
-                           help="enable verbose output")
+              help="enable verbose output")
     argparser.add_argument("-V", "--really-verbose", action="store_true",
-                           help="enable even more verbose output")
+              help="enable even more verbose output")
     inp_group = argparser.add_mutually_exclusive_group(required=True)
     inp_group.add_argument("-t", "--train", help="training data")
-    inp_group.add_argument("-r", "--read", help="read in serialized model")
+    inp_group.add_argument("-r", "--read", 
+              help="read in serialized model")
     out_group = argparser.add_mutually_exclusive_group(required=True)
     out_group.add_argument("-s", "--segment", help="segment sentences")
     out_group.add_argument("-w", "--write",
-                           help="write out serialized model")
+              help="write out serialized model")
     out_group.add_argument("-e", "--evaluate",
-                           help="evaluate on segmented data")
-    argparser.add_argument("-B", "--bins", type=int, default=BINS,
-                           help="# of bins (default: {})".format(BINS))
+              help="evaluate on segmented data")
     argparser.add_argument("-E", "--epochs", type=int, default=EPOCHS,
-                           help="# of epochs (default: {})".format(EPOCHS))
+              help="# of epochs (default: {})".format(EPOCHS))
     argparser.add_argument("-C", "--nocase", action="store_true",
-                           help="disable case features")
+              help="disable case features")
     args = argparser.parse_args()
     # verbosity block
     if args.really_verbose:
@@ -64,8 +63,8 @@ if __name__ == "__main__":
     detector = None
     if args.train:
         logging.info("Training model on '{}'.".format(args.train))
-        detector = Detector(slurp(args.train), bins=args.bins,
-                            epochs=args.epochs, nocase=args.nocase)
+        detector = Detector(slurp(args.train), epochs=args.epochs, 
+                            nocase=args.nocase)
     elif args.read:
         logging.info("Reading pretrained model '{}'.".format(args.read))
         detector = IO(Detector.load)(args.read)

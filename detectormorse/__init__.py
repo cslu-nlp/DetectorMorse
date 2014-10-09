@@ -20,5 +20,4 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-from .quantile import *
 from .detector import Detector, slurp

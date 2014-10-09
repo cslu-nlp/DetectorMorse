@@ -33,14 +33,11 @@ from nlup.decorators import listify, IO
 from nlup.jsonable import JSONable
 from nlup.perceptron import BinaryAveragedPerceptron as CLASSIFIER
 
-from .quantile import quantile_breaks, get_quantile
-
 
 # defaults
 
 NOCASE = False  # disable case-based features?
 ADD_N = 1       # Laplace smoothing constant
-BINS = 20       # number of quantile bins (for discretizing features)
 EPOCHS = 20     # number of epochs (iterations for classifier training)
 BUFSIZE = 128   # for reading in left and right contexts...see below
 
@@ -86,11 +83,11 @@ def slurp(filename):
 class Detector(JSONable):
 
     def __init__(self, text=None, nocase=NOCASE, epochs=EPOCHS,
-                 bins=BINS, classifier=CLASSIFIER, **kwargs):
+                 classifier=CLASSIFIER, **kwargs):
         self.classifier = classifier(**kwargs)
         self.nocase = nocase
         if text:
-            self.fit(text, epochs, bins)
+            self.fit(text, epochs)
 
     def __repr__(self):
         return "{}(classifier={!r})".format(self.__class__.__name__,
@@ -142,12 +139,8 @@ class Detector(JSONable):
                 if Detector._fit_case(L):
                     yield "(L_0:upper)"
             L = L.upper()
-            if L in self.q_upper:
-                yield "quantile(p(upper|L_0))={}".format(self.q_upper[L])
             if not any(char in VOWELS for char in L):
                 yield "(L:no-vowel)"
-        if L in self.q_Lfinal:
-            yield "quantile(p(final|L))={}".format(self.q_Lfinal[L])
         L_feat = "L='{}'".format(L)
         yield L_feat
         # R features
@@ -160,8 +153,6 @@ class Detector(JSONable):
                 if Detector._fit_case(R):
                     yield "(R_0:upper)"
             R = R.upper()
-            if R in self.q_upper:
-                yield "quantile(p(upper|R_0))={}".format(self.q_upper[R])
         R_feat = "R='{}'".format(R)
         yield R_feat
         # the combined L,R feature
@@ -181,43 +172,6 @@ class Detector(JSONable):
         return token
 
     @staticmethod
-    def _fit_freqs2quants(cfd, add_n=ADD_N, bins=BINS):
-        """
-        Convert a dictionary representing a conditional binomial
-        probability distribution `cfd` to a dictionary containing the
-        indices of the nearest quantile. To enable Laplace smoothing,
-        set `add_n` to some positive value (perhaps .5 or 1). The
-        parameter `bins` determines the number of quantiles.
-        """
-        retval = {}
-        # convert to probability distribution
-        for (token, cfd_token) in cfd.items():
-            numerator = cfd_token[True] + add_n
-            denominator = numerator + cfd_token[False] + add_n
-            retval[token] = numerator / denominator
-        # convert probabilities with quantile values
-        Qb = quantile_breaks(retval.values(), bins)
-        retval = {token: get_quantile(Qb, value) for
-                 (token, value) in retval.items()}
-        return retval
-
-    @staticmethod
-    def _fit_first_middle_last(line):
-        tokens = [Detector._fit_merge_token(token) for
-                  token in word_tokenize(line)]
-        if not tokens:
-            return (None, [], None)
-        first = tokens.pop(0)
-        if not tokens:
-            return (first, [], None)
-        last = tokens.pop()
-        if match(PUNCT, last):
-            if not tokens:
-                return (first, [], None)
-            last = tokens.pop()
-        return (first, tokens, last)
-
-    @staticmethod
     def _fit_case(token):
         if not token:
             return
@@ -228,37 +182,11 @@ class Detector(JSONable):
 
     # actual detector operations
 
-    def fit(self, text, epochs=EPOCHS, bins=BINS):
+    def fit(self, text, epochs=EPOCHS):
         """
         Given a string `text`, use it to train the segmentation classifier
         for `epochs` iterations.
         """
-        logging.debug("Computing quantiles for probabilistic features.")
-        # compute conditional frequencies
-        f_Lfinal = defaultdict(lambda: {True: 0, False: 0})
-        f_upper = defaultdict(lambda: {True: 0, False: 0})
-        for line in text.splitlines():
-            (first, middle, last) = Detector._fit_first_middle_last(line)
-            if not first:
-                continue
-            first_f = first.upper()
-            f_Lfinal[first_f][False] += 1
-            # case is ambiguous here...
-            for token in middle:
-                token_f = token.upper()
-                case = Detector._fit_case(token)
-                if case is not None:
-                    f_upper[token_f][case] += 1
-                f_Lfinal[token_f][False] += 1
-            if not last:
-                continue
-            last_f = last.upper()
-            case = Detector._fit_case(last)
-            if case is not None:
-                f_upper[last_f][case] += 1
-            f_Lfinal[last_f][True] += 1
-        self.q_Lfinal = Detector._fit_freqs2quants(f_Lfinal, bins)
-        self.q_upper = Detector._fit_freqs2quants(f_upper, bins)
         logging.debug("Extracting features and classifications.")
         X = []
         Y = []
