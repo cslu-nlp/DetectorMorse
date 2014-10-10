@@ -15,11 +15,12 @@ Detector Morse has been tested on CPython 3.4 and PyPy3 (2.3.1, corresponding to
 Usage
 =====
 
-     usage: detectormorse.py [-h] [-v] [-V] (-t TRAIN | -r READ)
-               (-s SEGMENT | -w WRITE | -e EVALUATE) [-C] [-T T]
-     
      Detector Morse, by Kyle Gorman
      
+     usage: python -m detectormorse [-h] [-v] [-V] (-t TRAIN | -r READ)
+                                    (-s SEGMENT | -w WRITE | -e EVALUATE)
+                                    [-E EPOCHS] [-C]
+
      optional arguments:
        -h, --help            show this help message and exit
        -v, --verbose         enable verbose output
