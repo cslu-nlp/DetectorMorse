@@ -53,21 +53,21 @@ VOWELS = frozenset("AEIOUY")
 QUOTE_TOKEN = "*QUOTE*"
 NUMBER_TOKEN = "*NUMBER*"
 
-# regexs
+# regexes
 
 PUNCT = r"((\.+)|([!?]))"
-TARGET = PUNCT + r"[\'\`\"]*(\s+)"
+TARGET = PUNCT + r"(['`\")}\]]*)(\s+)"
 
-LTOKEN = r"\S+$"
-RTOKEN = r"^\S+"
+LTOKEN = r"(\S+)\s*$"
+RTOKEN = r"^\s*(\S+)"
 NEWLINE = r"^\s*[\r\n]+\s*$"
 
 NUMBER = r"^(\-?\$?)(\d+(\,\d{3})*([\-\/\:\.]\d+)?)\%?$"
-QUOTE = r"[\"\'\`]+"
+QUOTE = r"^['`\"]+$"
 
 # other
 
-Observation = namedtuple("Observation", ["L", "S", "R", "end"])
+Observation = namedtuple("Observation", ["L", "P", "R", "B", "end"])
 
 
 @IO
@@ -101,31 +101,35 @@ class Detector(JSONable):
         extraction and classification
         """
         for Pmatch in finditer(TARGET, text):
+            # the punctuation mark itself
             P = Pmatch.group(1)
-            S = Pmatch.group(4)
+            # is it a boundary?
+            B = bool(match(NEWLINE, Pmatch.group(5)))
+            # L & R
             start = Pmatch.start()
             end = Pmatch.end()
             Lmatch = search(LTOKEN, text[max(0, start - BUFSIZE):start])
             if not Lmatch:  # this happens when a line begins with '.'
                 continue
-            L = word_tokenize(" " + Lmatch.group())[-1]
+            L = word_tokenize(" " + Lmatch.group(1))[-1]
             Rmatch = search(RTOKEN, text[end:end + BUFSIZE])
             if not Rmatch:  # this happens at the end of the file, usually
                 continue
-            R = word_tokenize(Rmatch.group() + " ")[0]
-            yield Observation(L, S, R, end)
+            R = word_tokenize(Rmatch.group(1) + " ")[0]
+            # complete observation
+            yield Observation(L, P, R, B, end)
 
     # extract features
 
     @listify
-    def extract_one(self, L, R):
+    def extract_one(self, L, P, R):
         """
-        Given left context `L` and right context `R`, extract features. 
-        Probability distributions for decile-based features will not be 
-        modified.
+        Given left context `L`, punctuation mark `P`, and right context 
+        R`, extract features. Probability distributions for any 
+        quantile-based features will not be modified.
         """
         yield "(bias)"
-        # L features
+        # L feature(s)
         if match(QUOTE, L):
             L = QUOTE_TOKEN
         elif match(NUMBER, L):
@@ -142,7 +146,9 @@ class Detector(JSONable):
                 yield "(L:no-vowel)"
         L_feat = "L='{}'".format(L)
         yield L_feat
-        # R features
+        # P feature(s)
+        yield "P='{}'".format(P)
+        # R feature(s)
         if match(QUOTE, R):
             R = QUOTE_TOKEN
         elif match(NUMBER, R):
@@ -189,18 +195,19 @@ class Detector(JSONable):
         logging.debug("Extracting features and classifications.")
         X = []
         Y = []
-        for (L, S, R, _) in Detector.candidates(text):
-            X.append(self.extract_one(L, R))
-            Y.append(bool(match(NEWLINE, S)))
+        for (L, P, R, gold, _) in Detector.candidates(text):
+            X.append(self.extract_one(L, P, R))
+            Y.append(gold)
         self.classifier.fit(X, Y, epochs)
         logging.debug("Fitting complete.")
 
-    def predict(self, L, R):
+    def predict(self, L, P, R):
         """
-        Given an left context `L` and right context `R`, return True iff u
-        this observation is hypothesized to be a sentence boundary.
+        Given an left context `L`, punctuation mark `P`, and right context
+        `R`, return True iff this observation is hypothesized to be a 
+        sentence boundary.
         """
-        x = self.extract_one(L, R)
+        x = self.extract_one(L, P, R)
         return self.classifier.predict(x)
 
     def segments(self, text):
@@ -209,11 +216,11 @@ class Detector(JSONable):
         hypothesized sentence string
         """
         start = 0
-        for (L, S, R, end) in Detector.candidates(text):
+        for (L, P, R, B, end) in Detector.candidates(text):
             # if there's already a newline there, we have nothing to do
-            if match(NEWLINE, S):
+            if B:
                 continue
-            if self.predict(L, R):
+            if self.predict(L, P, R):
                 yield text[start:end]
                 start = end
             # otherwise, there's probably not a sentence boundary here
@@ -225,9 +232,8 @@ class Detector(JSONable):
         classification task.
         """
         cx = BinaryConfusion()
-        for (L, S, R, _) in Detector.candidates(text):
-            gold = bool(match(NEWLINE, S))
-            guess = self.predict(L, R)
+        for (L, P, R, gold, _) in Detector.candidates(text):
+            guess = self.predict(L, P, R)
             cx.update(gold, guess)
             if not gold and guess:
                 logging.debug("False pos.: L='{}', R='{}'.".format(L, R))
