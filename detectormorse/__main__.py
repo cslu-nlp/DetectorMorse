@@ -75,6 +75,7 @@ if __name__ == "__main__":
             print(segment)
     if args.write:
         logging.info("Writing model to '{}'.".format(args.write))
+        detector.cull()
         IO(detector.dump)(args.write)
     elif args.evaluate:
         logging.info("Evaluating model on '{}'.".format(args.evaluate))
