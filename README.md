@@ -57,20 +57,3 @@ Exciting extras!
 ================
 
 I've included a Perl script `untokenize.pl` which attempts to invert the Penn Treebank tokenization process. Tokenization is an inherently "lossy" procedure, so there is no guarantee that the output is exactly how it appeared in the WSJ. But, the rules appear to be correct and produce sane text, and I have used it for all experiments.
-
-References
-==========
-
-Y. Freund & R.E. Schapire. 1999. Large margin classification using the perceptron algorithm. _Machine Learning_ 37(3): 277-296.
-
-D. Gillick. 2009. Sentence boundary detection and the problem with the U.S. In _Proceedings of NAACL-HLT_, pages 241-244.
-
-G. Grefenstette. 1999. Tokenization. In H. van Halteren (ed.), _Syntactic wordclass tagging_, pages 117-133. Dordrecht: Kluwer.
-
-T. Kiss & J. Strunk. 2006. Unsupervised multilingual sentence boundary detection. _Computational Linguistics_ 32(4): 485-525.
-
-A. Mikheev. 2002. Periods, capitalized words, etc. _Computational Linguistics_ 28(3): 289-318.
-
-J.C. Reynar & A. Ratnaparkhi. 1997. A maximum entropy approach to identifying sentence boundaries. In _Proceedings of the 5th Conference on Applied Natural Language Processing_, pages 16-19.
-
-M.D. Riley. 1989. Some applications of tree-based modelling to speech and language indexing. In _Proceedings of the DARPA Speech and Natural Language Workshop_, pages 339-352.
