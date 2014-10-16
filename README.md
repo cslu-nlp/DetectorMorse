@@ -46,7 +46,7 @@ When segmenting a file (`-s`/`--segment`), DetectorMorse simply inserts a newlin
 Method
 ======
 
-See http://sonny.cslu.ohsu.edu/~gormanky/blog/simpler-sentence-boundary-detection/.
+See [this blog post](http://bit.ly/1nrcuzn).
 
 Caveats
 =======
