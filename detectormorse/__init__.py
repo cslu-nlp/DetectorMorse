@@ -21,3 +21,4 @@
 
 
 from .detector import Detector, slurp
+from .ptbtokenizer import word_tokenize

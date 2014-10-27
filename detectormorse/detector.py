@@ -26,7 +26,7 @@ from re import finditer, match, search, sub
 from collections import defaultdict, namedtuple
 from string import ascii_lowercase, ascii_uppercase, digits
 
-from nltk import word_tokenize
+from .ptbtokenizer import word_tokenize
 
 from nlup.confusion import BinaryConfusion
 from nlup.decorators import listify, IO
@@ -38,7 +38,7 @@ from nlup.perceptron import BinaryAveragedPerceptron as CLASSIFIER
 
 NOCASE = False  # disable case-based features?
 EPOCHS = 20     # number of epochs (iterations for classifier training)
-BUFSIZE = 128   # for reading in left and right contexts...see below
+BUFSIZE = 32    # for reading in left and right contexts...see below
 
 # character classes
 

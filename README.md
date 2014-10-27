@@ -10,7 +10,8 @@ This sentence contains 4 periods, but only the last denotes a sentence boundary.
 
 SBD is one of the earliest pieces of many natural language processing pipelines. Since errors at this step are likely to propagate, SBD is an important---albeit overlooked---problem in natural language processing.
 
-Detector Morse has been tested on CPython 3.4 and PyPy3 (2.3.1, corresponding to Python 3.2); the latter is much faster. Detector Morse depends on the Python module `jsonpickle` to (de)serialize models and uses `nltk`'s `word_tokenize` function during feature extraction. See `requirements.txt` for versions used for testing.
+Detector Morse has been tested on CPython 3.4 and PyPy3 (2.3.1, corresponding to Python 3.2); the latter is much faster. Detector Morse depends on the Python module `jsonpickle` to (de)serialize models. For the versions used,
+see `requirements.txt`.
 
 Usage
 =====
