@@ -37,20 +37,20 @@ the NLTK version; don't ask me why.
 from re import sub
 
 
-RULES1 = [# starting quotes
-          (r'^\"', r'``'),
-          (r'(``)', r' \1 '),
-          (r'([ (\[{<])"', r'\1 `` '),
-          # punctuation
-          (r'([:,])([^\d])', r' \1 \2'),
-          (r'\.\.\.', r' ... '),
-          (r'[;@#$%&]', r' \g<0> '),
-          (r'([^\.])(\.)([\]\)}>"\']*)\s*$', r'\1 \2\3 '),
-          (r'[?!]', r' \g<0> '),
-          (r"([^'])' ", r"\1 ' "),
-          # parens, brackets, etc.
-          (r'[\]\[\(\)\{\}\<\>]', r' \g<0> '),
-          (r'--', r' -- ')]
+RULES1 = [  # starting quotes
+    (r'^\"', r'``'),
+    (r'(``)', r' \1 '),
+    (r'([ (\[{<])"', r'\1 `` '),
+    # punctuation
+    (r'([:,])([^\d])', r' \1 \2'),
+    (r'\.\.\.', r' ... '),
+    (r'[;@#$%&]', r' \g<0> '),
+    (r'([^\.])(\.)([\]\)}>"\']*)\s*$', r'\1 \2\3 '),
+    (r'[?!]', r' \g<0> '),
+    (r"([^'])' ", r"\1 ' "),
+    # parens, brackets, etc.
+    (r'[\]\[\(\)\{\}\<\>]', r' \g<0> '),
+    (r'--', r' -- ')]
 
 # ending quotes
 RULES2 = [(r'"', " '' "),
@@ -68,7 +68,7 @@ CONTRACTIONS = [r"(?i)([^' ])('S|'M|'D|') ",
                 r"(?i)\b(MOR)('N)\b",
                 r"(?i)\b(WAN)(NA) ",
                 r"(?i) ('T)(IS)\b",
-                r"(?i) ('T)(was)\b"]
+                r"(?i) ('T)(WAS)\b"]
 
 
 def word_tokenize(text):
