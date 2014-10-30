@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setupt
 
 setup(name="DetectorMorse",
       version="0.1",
       description="DetectorMorse, a sentence splitter",
       author="Kyle Gorman",
       author_email="gormanky@ohsu.edu",
-      packages=["detectormorse"],)
+      packages=["detectormorse"],
+      install_requires=["nlup >= 0.1.0"],
+      dependency_links=["http://github.com/cslu-nlp/nlup/archive/master.zip#egg=nlup-0.1.0"])
