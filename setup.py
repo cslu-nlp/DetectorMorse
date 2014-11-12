@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setupt
+from setuptools import setup
 
 setup(name="DetectorMorse",
       version="0.1",
