@@ -240,9 +240,3 @@ class Detector(JSONable):
             elif gold and not guess:
                 logging.debug("False neg.: L='{}', R='{}'.".format(L, R))
         return cx
-
-    def cull(self):
-        """
-        Remove zero-valued features from the classifier
-        """
-        self.classifier.cull()

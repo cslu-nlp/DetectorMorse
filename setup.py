@@ -8,5 +8,5 @@ setup(name="DetectorMorse",
       author="Kyle Gorman",
       author_email="gormanky@ohsu.edu",
       packages=["detectormorse"],
-      install_requires=["nlup >= 0.1.0"],
-      dependency_links=["http://github.com/cslu-nlp/nlup/archive/master.zip#egg=nlup-0.1.0"])
+      install_requires=["nlup >= 0.2.0"],
+      dependency_links=["http://github.com/cslu-nlp/nlup/archive/master.zip#egg=nlup-0.2.0"])
