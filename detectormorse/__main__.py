@@ -71,8 +71,7 @@ if __name__ == "__main__":
     # output block
     if args.segment:
         logging.info("Segmenting '{}'.".format(args.segment))
-        for segment in detector.segments(slurp(args.segment)):
-            print(segment)
+        print("\n".join(detector.segments(slurp(args.segment))))
     if args.write:
         logging.info("Writing model to '{}'.".format(args.write))
         IO(detector.dump)(args.write)

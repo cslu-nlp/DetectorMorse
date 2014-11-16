@@ -221,10 +221,10 @@ class Detector(JSONable):
             if B:
                 continue
             if self.predict(L, P, R):
-                yield text[start:end]
+                yield text[start:end].rstrip()
                 start = end
             # otherwise, there's probably not a sentence boundary here
-        yield text[start:]
+        yield text[start:].rstrip()
 
     def evaluate(self, text):
         """
