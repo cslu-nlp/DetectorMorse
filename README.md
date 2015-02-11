@@ -57,4 +57,4 @@ DetectorMorse processes text by reading the entire file into memory. This means 
 Exciting extras!
 ================
 
-I've included a Perl script `untokenize.pl` which attempts to invert the Penn Treebank tokenization process. Tokenization is an inherently "lossy" procedure, so there is no guarantee that the output is exactly how it appeared in the WSJ. But, the rules appear to be correct and produce sane text, and I have used it for all experiments.
+I've included a Perl script `untokenize.pl` which attempts to invert the Penn Treebank tokenization process. Tokenization is an inherently "lossy" procedure, so there is no guarantee that the output is exactly how it appeared in the WSJ. But, the rules appear to be correct and produce sane text, and I have used it for all experiments. **Update (2015-02-10): I've removed this script; I just use the Stanford tokenizer for this purpose, now.**
