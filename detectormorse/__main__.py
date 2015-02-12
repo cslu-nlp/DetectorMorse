@@ -33,9 +33,10 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
     argparser = ArgumentParser(prog="python -m detectormorse",
               description="Detector Morse, by Kyle Gorman")
-    argparser.add_argument("-v", "--verbose", action="store_true",
+    vrb_group = argparser.add_mutually_exclusive_group()
+    vrb_group.add_argument("-v", "--verbose", action="store_true",
               help="enable verbose output")
-    argparser.add_argument("-V", "--really-verbose", action="store_true",
+    vrb_group.add_argument("-V", "--really-verbose", action="store_true",
               help="enable even more verbose output")
     inp_group = argparser.add_mutually_exclusive_group(required=True)
     inp_group.add_argument("-t", "--train", help="training data")
@@ -54,9 +55,9 @@ if __name__ == "__main__":
     args = argparser.parse_args()
     # verbosity block
     if args.really_verbose:
-        logging.basicConfig(format=LOGGING_FMT, level=logging.DEBUG)
+        logging.basicConfig(format=LOGGING_FMT, level="DEBUG")
     elif args.verbose:
-        logging.basicConfig(format=LOGGING_FMT, level=logging.INFO)
+        logging.basicConfig(format=LOGGING_FMT, level="INFO")
     else:
         logging.basicConfig(format=LOGGING_FMT)
     # input block

@@ -193,12 +193,12 @@ class Detector(JSONable):
         for `epochs` iterations.
         """
         logging.debug("Extracting features and classifications.")
-        X = []
+        Phi = []
         Y = []
         for (L, P, R, gold, _) in Detector.candidates(text):
-            X.append(self.extract_one(L, P, R))
+            Phi.append(self.extract_one(L, P, R))
             Y.append(gold)
-        self.classifier.fit(X, Y, epochs)
+        self.classifier.fit(Y, Phi, epochs)
         logging.debug("Fitting complete.")
 
     def predict(self, L, P, R):
@@ -207,8 +207,8 @@ class Detector(JSONable):
         `R`, return True iff this observation is hypothesized to be a 
         sentence boundary.
         """
-        x = self.extract_one(L, P, R)
-        return self.classifier.predict(x)
+        phi = self.extract_one(L, P, R)
+        return self.classifier.predict(phi)
 
     def segments(self, text):
         """
