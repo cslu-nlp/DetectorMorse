@@ -1,7 +1,5 @@
-.DS_Store
-*.py[cod]
-__pycache__
-WSJ*.txt
+__pycache__/
+*.py[co]
 *.json.gz
+*.log
 *.sh
-*.xlsx
