@@ -26,12 +26,11 @@ from re import finditer, match, search, sub
 from collections import defaultdict, namedtuple
 from string import ascii_lowercase, ascii_uppercase, digits
 
-from .ptbtokenizer import word_tokenize
+from nlup import case_feature, isnumberlike, listify, \
+                 BinaryAveragedPerceptron, BinaryConfusion, IO, JSONable
 
-from nlup.confusion import BinaryConfusion
-from nlup.decorators import listify, IO
-from nlup.jsonable import JSONable
-from nlup.perceptron import BinaryAveragedPerceptron as CLASSIFIER
+from .ptbtokenizer import word_tokenize
+# FIXME(kbg) can surely avoid full-blown tokenization
 
 
 # defaults
@@ -39,13 +38,10 @@ from nlup.perceptron import BinaryAveragedPerceptron as CLASSIFIER
 NOCASE = False  # disable case-based features?
 EPOCHS = 20     # number of epochs (iterations for classifier training)
 BUFSIZE = 32    # for reading in left and right contexts...see below
+CLIP = 8        # clip numerical count feature values
 
 # character classes
 
-DIGITS = frozenset(digits)
-LOWERCASE = frozenset(ascii_lowercase)
-UPPERCASE = frozenset(ascii_uppercase)
-LETTERS = LOWERCASE | UPPERCASE
 VOWELS = frozenset("AEIOUY")
 
 # token classes
@@ -62,7 +58,6 @@ LTOKEN = r"(\S+)\s*$"
 RTOKEN = r"^\s*(\S+)"
 NEWLINE = r"^\s*[\r\n]+\s*$"
 
-NUMBER = r"^(\-?\$?)(\d+(\,\d{3})*([\-\/\:\.]\d+)?)\%?$"
 QUOTE = r"^['`\"]+$"
 
 # other
@@ -82,7 +77,7 @@ def slurp(filename):
 class Detector(JSONable):
 
     def __init__(self, text=None, nocase=NOCASE, epochs=EPOCHS,
-                 classifier=CLASSIFIER, **kwargs):
+                 classifier=BinaryAveragedPerceptron, **kwargs):
         self.classifier = classifier(**kwargs)
         self.nocase = nocase
         if text:
@@ -128,22 +123,23 @@ class Detector(JSONable):
         R`, extract features. Probability distributions for any 
         quantile-based features will not be modified.
         """
-        yield "(bias)"
+        yield "*bias*"
         # L feature(s)
         if match(QUOTE, L):
             L = QUOTE_TOKEN
-        elif match(NUMBER, L):
+        elif isnumberlike(L):
             L = NUMBER_TOKEN
         else:
-            yield "len(L)={}".format(min(10, len(L)))
+            yield "len(L)={}".format(min(len(L), CLIP))
             if "." in L:
-                yield "(L:period)"
+                yield "L:*period*"
             if not self.nocase:
-                if Detector._fit_case(L):
-                    yield "(L_0:upper)"
+                cf = case_feature(R)
+                if cf:
+                    yield "L:{}'".format(cf)
             L = L.upper()
             if not any(char in VOWELS for char in L):
-                yield "(L:no-vowel)"
+                yield "L:*no-vowel*"
         L_feat = "L='{}'".format(L)
         yield L_feat
         # P feature(s)
@@ -151,39 +147,18 @@ class Detector(JSONable):
         # R feature(s)
         if match(QUOTE, R):
             R = QUOTE_TOKEN
-        elif match(NUMBER, R):
+        elif isnumberlike(R):
             R = NUMBER_TOKEN
         else:
             if not self.nocase:
-                if Detector._fit_case(R):
-                    yield "(R_0:upper)"
+                cf = case_feature(R)
+                if cf:
+                    yield "R:{}'".format(cf)
             R = R.upper()
         R_feat = "R='{}'".format(R)
         yield R_feat
         # the combined L,R feature
         yield "{},{}".format(L_feat, R_feat)
-
-    # helpers for `fit`
-
-    @staticmethod
-    def _fit_merge_token(token):
-        """
-        Merge tokens as per `fit`
-        """
-        if match(QUOTE, token):
-            return QUOTE_TOKEN
-        if match(NUMBER, token):
-            return NUMBER_TOKEN
-        return token
-
-    @staticmethod
-    def _fit_case(token):
-        if not token:
-            return
-        if token[0] in UPPERCASE:
-            return True
-        if token[0] in LOWERCASE:
-            return False
 
     # actual detector operations
 

@@ -22,63 +22,64 @@
 
 import logging
 
+from argparse import ArgumentParser
+
 from nlup.decorators import IO
+
 from .detector import Detector, slurp, EPOCHS
 
 
-LOGGING_FMT = "%(module)s: %(message)s"
+LOGGING_FMT = "%(message)s"
 
 
-if __name__ == "__main__":
-    from argparse import ArgumentParser
-    argparser = ArgumentParser(prog="python -m detectormorse",
-              description="Detector Morse, by Kyle Gorman")
-    vrb_group = argparser.add_mutually_exclusive_group()
-    vrb_group.add_argument("-v", "--verbose", action="store_true",
-              help="enable verbose output")
-    vrb_group.add_argument("-V", "--really-verbose", action="store_true",
+argparser = ArgumentParser(prog="python -m detectormorse",
+                           description="Detector Morse")
+vrb_group = argparser.add_mutually_exclusive_group()
+vrb_group.add_argument("-v", "--verbose", action="store_true",
+                       help="enable verbose output")
+vrb_group.add_argument("-V", "--really-verbose", action="store_true",
               help="enable even more verbose output")
-    inp_group = argparser.add_mutually_exclusive_group(required=True)
-    inp_group.add_argument("-t", "--train", help="training data")
-    inp_group.add_argument("-r", "--read", 
+inp_group = argparser.add_mutually_exclusive_group(required=True)
+inp_group.add_argument("-t", "--train", help="training data")
+inp_group.add_argument("-r", "--read", 
               help="read in serialized model")
-    out_group = argparser.add_mutually_exclusive_group(required=True)
-    out_group.add_argument("-s", "--segment", help="segment sentences")
-    out_group.add_argument("-w", "--write",
+out_group = argparser.add_mutually_exclusive_group(required=True)
+out_group.add_argument("-s", "--segment", help="segment sentences")
+out_group.add_argument("-w", "--write",
               help="write out serialized model")
-    out_group.add_argument("-e", "--evaluate",
+out_group.add_argument("-e", "--evaluate",
               help="evaluate on segmented data")
-    argparser.add_argument("-E", "--epochs", type=int, default=EPOCHS,
+argparser.add_argument("-E", "--epochs", type=int, default=EPOCHS,
               help="# of epochs (default: {})".format(EPOCHS))
-    argparser.add_argument("-C", "--nocase", action="store_true",
+argparser.add_argument("-C", "--nocase", action="store_true",
               help="disable case features")
-    args = argparser.parse_args()
-    # verbosity block
-    if args.really_verbose:
-        logging.basicConfig(format=LOGGING_FMT, level="DEBUG")
-    elif args.verbose:
-        logging.basicConfig(format=LOGGING_FMT, level="INFO")
-    else:
-        logging.basicConfig(format=LOGGING_FMT)
-    # input block
-    detector = None
-    if args.train:
-        logging.info("Training model on '{}'.".format(args.train))
-        detector = Detector(slurp(args.train), epochs=args.epochs, 
-                            nocase=args.nocase)
-    elif args.read:
-        logging.info("Reading pretrained model '{}'.".format(args.read))
-        detector = IO(Detector.load)(args.read)
-    # output block
-    if args.segment:
-        logging.info("Segmenting '{}'.".format(args.segment))
-        print("\n".join(detector.segments(slurp(args.segment))))
-    if args.write:
-        logging.info("Writing model to '{}'.".format(args.write))
-        IO(detector.dump)(args.write)
-    elif args.evaluate:
-        logging.info("Evaluating model on '{}'.".format(args.evaluate))
-        cx = detector.evaluate(slurp(args.evaluate))
-        if args.verbose or args.really_verbose:
-            cx.pprint()
-        print(cx.summary)
+args = argparser.parse_args()
+# verbosity block
+if args.really_verbose:
+    logging.basicConfig(format=LOGGING_FMT, level="DEBUG")
+elif args.verbose:
+    logging.basicConfig(format=LOGGING_FMT, level="INFO")
+else:
+    logging.basicConfig(format=LOGGING_FMT)
+# input block
+detector = None
+if args.train:
+    logging.info("Training model on '{}'.".format(args.train))
+    detector = Detector(slurp(args.train), epochs=args.epochs, 
+                                           nocase=args.nocase)
+elif args.read:
+    logging.info("Reading pretrained model '{}'.".format(args.read))
+    detector = IO(Detector.load)(args.read)
+# output block
+if args.segment:
+    logging.info("Segmenting '{}'.".format(args.segment))
+    print("\n".join(detector.segments(slurp(args.segment))))
+if args.write:
+    logging.info("Writing model to '{}'.".format(args.write))
+    IO(detector.dump)(args.write)
+elif args.evaluate:
+    logging.info("Evaluating model on '{}'.".format(args.evaluate))
+    cx = detector.evaluate(slurp(args.evaluate))
+    if args.verbose or args.really_verbose:
+        cx.pprint()
+    print(cx.summary)
