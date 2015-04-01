@@ -44,6 +44,8 @@ Files used for training (`-t`/`--train`) and evaluation (`-e`/`--evaluate`) shou
 
 When segmenting a file (`-s`/`--segment`), DetectorMorse simply inserts a newline after predicted sentence boundaries that aren't already marked by one. All other newline characters are passed through, unmolested.
 
+The included `DM-wsj.json.gz` is a segmenter model trained on the Wall St. Journal portion of the Penn Treebank.
+
 Method
 ======
 
