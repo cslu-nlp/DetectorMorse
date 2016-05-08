@@ -49,7 +49,7 @@ The included `DM-wsj.json.gz` is a segmenter model trained on the Wall St. Journ
 Method
 ======
 
-See [this blog post](http://bit.ly/1nrcuzn).
+See [this blog post](http://www.wellformedness.com/blog/simpler-sentence-boundary-detection/).
 
 Caveats
 =======
