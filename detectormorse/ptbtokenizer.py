@@ -1,4 +1,4 @@
-# Copyright (c) 2014 Kyle Gorman <gormanky@ohsu.edu>
+# Copyright (c) 2014-2016 Kyle Gorman.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the
@@ -20,11 +20,12 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-"""
-Penn Treebank tokenizer, adapted from `nltk.tokenize.treebank.py`, which 
-in turn is adapted from an infamous sed script by Robert McIntyre. Even 
-ignoring the reduced import overhead, this is about half again faster than 
-the NLTK version; don't ask me why.
+"""Penn Treebank tokenizer.
+
+This tokenizer is based on `nltk.tokenize.treebank.py`, which in turn is adapted
+from an infamous sed script by Robert McIntyre. Even ignoring the reduced import
+overhead, this is about half again faster than the NLTK version, but don't ask
+me why.
 
 >>> s = '''Good muffins cost $3.88\\nin New York.  Please buy me\\ntwo of them.\\nThanks.'''
 >>> word_tokenize(s)
@@ -37,26 +38,26 @@ the NLTK version; don't ask me why.
 from re import sub
 
 
-RULES1 = [  # starting quotes
+RULES1 = [  # Starting quotes.
     (r'^\"', r'``'),
     (r'(``)', r' \1 '),
     (r'([ (\[{<])"', r'\1 `` '),
-    # punctuation
+    # Punctuation.
     (r'([:,])([^\d])', r' \1 \2'),
     (r'\.\.\.', r' ... '),
     (r'[;@#$%&]', r' \g<0> '),
     (r'([^\.])(\.)([\]\)}>"\']*)\s*$', r'\1 \2\3 '),
     (r'[?!]', r' \g<0> '),
     (r"([^'])' ", r"\1 ' "),
-    # parens, brackets, etc.
+    # Parens, brackets, etc.
     (r'[\]\[\(\)\{\}\<\>]', r' \g<0> '),
     (r'--', r' -- ')]
 
-# ending quotes
+# Ending quotes.
 RULES2 = [(r'"', " '' "),
           (r'(\S)(\'\')', r'\1 \2 ')]
 
-# all replaced with r"\1 \2 "
+# All replaced with r"\1 \2 ".
 CONTRACTIONS = [r"(?i)([^' ])('S|'M|'D|') ",
                 r"(?i)([^' ])('LL|'RE|'VE|N'T) ",
                 r"(?i)\b(CAN)(NOT)\b",
@@ -72,16 +73,21 @@ CONTRACTIONS = [r"(?i)([^' ])('S|'M|'D|') ",
 
 
 def word_tokenize(text):
-    """
-    Split string `text` into word tokens using the Penn Treebank rules
-    """
-    for (regexp, replacement) in RULES1:
-        text = sub(regexp, replacement, text)
-    # add extra space to make things easier
-    text = " " + text + " "
-    for (regexp, replacement) in RULES2:
-        text = sub(regexp, replacement, text)
-    for regexp in CONTRACTIONS:
-        text = sub(regexp, r"\1 \2 ", text)
-    # split and return
-    return text.split()
+  """Splits string into word tokens.
+
+  Args:
+    text: Input text string.
+
+  Returns:
+    A list of word token strings.
+  """
+  for (regexp, replacement) in RULES1:
+    text = sub(regexp, replacement, text)
+  # Adds padding spaces to make things easier.
+  text = " " + text + " "
+  for (regexp, replacement) in RULES2:
+    text = sub(regexp, replacement, text)
+  for regexp in CONTRACTIONS:
+    text = sub(regexp, r"\1 \2 ", text)
+  # Splits and returns.
+  return text.split()

@@ -1,4 +1,4 @@
-# Copyright (c) 2014 Kyle Gorman <gormanky@ohsu.edu>
+# Copyright (c) 2014-2016 Kyle Gorman
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the
@@ -19,6 +19,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+"""DetectorMorse: sentence boundary detection with a linear model."""
 
-from .detector import Detector, slurp
+from .detector import Detector
 from .ptbtokenizer import word_tokenize

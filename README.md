@@ -6,18 +6,17 @@ Detector Morse is a program for sentence boundary detection (henceforth, SBD), a
     Rolls-Royce Motor Cars Inc. said it expects its U.S. sales to remain
     steady at about 1,200 cars in 1990.
 
-This sentence contains 4 periods, but only the last denotes a sentence boundary. The first one in `U.S.` is unambiguously part of an acronym, not a sentence boundary; the same is true of expressions like `$12.53`. But the periods at the end of `Inc.` and `U.S.` could easily denote a sentence boundary. Humans use the local context to determine that neither period denote sentence boundaries (e.g. the selectional properties of the verb _expect_ are not met if there is a sentence bounary immediately after `U.S.`). Detector Morse uses artisinal, handcrafted contextual features and low-impact, leave-no-trace machine learning methods to automatically detect sentence boundaries.
+This sentence contains 4 periods, but only the last denotes a sentence boundary. The first one in `U.S.` is unambiguously part of an acronym, not a sentence boundary; the same is true of expressions like `$12.53`. But the periods at the end of `Inc.` and `U.S.` could easily denote a sentence boundary. Humans use the local context to determine that neither period denote sentence boundaries (e.g. the selectional properties of the verb _expect_ are not met if there is a sentence bounary immediately after `U.S.`). Detector Morse uses artisinal, small-batch contextual features and low-impact, leave-no-trace machine learning methods to automatically detect sentence boundaries.
 
 SBD is one of the earliest pieces of many natural language processing pipelines. Since errors at this step are likely to propagate, SBD is an important---albeit overlooked---problem in natural language processing.
 
-Detector Morse has been tested on CPython 3.4 and PyPy3 (2.3.1, corresponding to Python 3.2); the latter is much faster. Detector Morse depends on the Python module `jsonpickle` to (de)serialize models. For the versions used,
-see `requirements.txt`.
+Detector Morse is tested on C++14, CPython 3.5, and [Protocol Buffers](http://github.com/google/protobuf) 3.0.0b3.
 
 Usage
 =====
 
      Detector Morse, by Kyle Gorman
-     
+
      usage: python -m detectormorse [-h] [-v] [-V] (-t TRAIN | -r READ)
                                     (-s SEGMENT | -w WRITE | -e EVALUATE)
                                     [-E EPOCHS] [-C]
@@ -38,7 +37,7 @@ Usage
        -E EPOCHS, --epochs EPOCHS
                              # of epochs (default: 20)
        -C, --nocase          disable case features
-        
+
 
 Files used for training (`-t`/`--train`) and evaluation (`-e`/`--evaluate`) should contain one sentence per line; newline characters are ignored otherwise.
 
@@ -49,14 +48,9 @@ The included `DM-wsj.json.gz` is a segmenter model trained on the Wall St. Journ
 Method
 ======
 
-See [this blog post](http://bit.ly/1nrcuzn).
+See [this blog post](http://wellformedness.com/blog/simpler-sentence-boundary-detection).
 
 Caveats
 =======
 
-DetectorMorse processes text by reading the entire file into memory. This means it will not work with files that won't fit into the available RAM. The easiest way to get around this is to import the `Detector` instance in your own Python script.
-
-Exciting extras!
-================
-
-I've included a Perl script `untokenize.pl` which attempts to invert the Penn Treebank tokenization process. Tokenization is an inherently "lossy" procedure, so there is no guarantee that the output is exactly how it appeared in the WSJ. But, the rules appear to be correct and produce sane text, and I have used it for all experiments. **Update (2015-02-10): I've removed this script; I just use the Stanford tokenizer for this purpose, now.**
+The DetectorMorse executable processes text by reading the entire file into memory. This means it will not work with files that won't fit into the available RAM. The easiest way to get around this is to import the `Detector` instance in your own Python script.
