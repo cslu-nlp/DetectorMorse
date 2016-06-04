@@ -238,9 +238,9 @@ class Detector(object):
       guess = self.predict(L, P, R)
       cx.update(gold, guess)
       if not gold and guess:
-        logging.debug("False pos.: L='%s', R='%s'", L, R)
+        logging.debug("False positive: L='%s', R='%s'", L, R)
       elif gold and not guess:
-        logging.debug("False neg.: L='%s', R='%s'". L, R)
+        logging.debug("False negative: L='%s', R='%s'", L, R)
     return cx
 
   # Delegates all remaining attributes to underlying classifier. Some useful
