@@ -27,7 +27,7 @@ from collections import defaultdict, namedtuple
 from string import ascii_lowercase, ascii_uppercase, digits
 
 from nlup import case_feature, isnumberlike, listify, \
-                 BinaryAveragedPerceptron, BinaryConfusion, IO, JSONable
+                 BinaryAveragedPerceptron, BinaryConfusion, JSONable
 
 from .ptbtokenizer import word_tokenize
 # FIXME(kbg) can surely avoid full-blown tokenization
@@ -65,7 +65,6 @@ QUOTE = r"^['`\"]+$"
 Observation = namedtuple("Observation", ["L", "P", "R", "B", "end"])
 
 
-@IO
 def slurp(filename):
     """
     Given a `filename` string, slurp the whole file into a string

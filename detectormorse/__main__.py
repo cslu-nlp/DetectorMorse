@@ -24,7 +24,6 @@ import logging
 
 from argparse import ArgumentParser
 
-from nlup.decorators import IO
 
 from .detector import Detector, slurp, EPOCHS
 
@@ -69,14 +68,14 @@ if args.train:
                                            nocase=args.nocase)
 elif args.read:
     logging.info("Reading pretrained model '{}'.".format(args.read))
-    detector = IO(Detector.load)(args.read)
+    detector = Detector.load(args.read)
 # output block
 if args.segment:
     logging.info("Segmenting '{}'.".format(args.segment))
     print("\n".join(detector.segments(slurp(args.segment))))
 if args.write:
     logging.info("Writing model to '{}'.".format(args.write))
-    IO(detector.dump)(args.write)
+    detector.dump(args.write)
 elif args.evaluate:
     logging.info("Evaluating model on '{}'.".format(args.evaluate))
     cx = detector.evaluate(slurp(args.evaluate))
