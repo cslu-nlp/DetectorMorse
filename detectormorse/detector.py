@@ -20,15 +20,14 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
-
-from re import finditer, match, search, sub
-from collections import defaultdict, namedtuple
-from string import ascii_lowercase, ascii_uppercase, digits
+from collections import namedtuple
+from re import finditer, match, search
 
 from nlup import case_feature, isnumberlike, listify, \
-                 BinaryAveragedPerceptron, BinaryConfusion, JSONable
+    BinaryAveragedPerceptron, BinaryConfusion, JSONable
 
 from .ptbtokenizer import word_tokenize
+
 # FIXME(kbg) can surely avoid full-blown tokenization
 
 
