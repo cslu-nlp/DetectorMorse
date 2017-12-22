@@ -116,8 +116,8 @@ class Detector(JSONable):
     @listify
     def extract_one(self, L, P, R):
         """
-        Given left context `L`, punctuation mark `P`, and right context 
-        R`, extract features. Probability distributions for any 
+        Given left context `L`, punctuation mark `P`, and right context
+        R`, extract features. Probability distributions for any
         quantile-based features will not be modified.
         """
         yield "*bias*"
@@ -176,7 +176,7 @@ class Detector(JSONable):
     def predict(self, L, P, R):
         """
         Given an left context `L`, punctuation mark `P`, and right context
-        `R`, return True iff this observation is hypothesized to be a 
+        `R`, return True iff this observation is hypothesized to be a
         sentence boundary.
         """
         phi = self.extract_one(L, P, R)

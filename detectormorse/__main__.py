@@ -40,7 +40,7 @@ vrb_group.add_argument("-V", "--really-verbose", action="store_true",
               help="enable even more verbose output")
 inp_group = argparser.add_mutually_exclusive_group(required=True)
 inp_group.add_argument("-t", "--train", help="training data")
-inp_group.add_argument("-r", "--read", 
+inp_group.add_argument("-r", "--read",
               help="read in serialized model")
 out_group = argparser.add_mutually_exclusive_group(required=True)
 out_group.add_argument("-s", "--segment", help="segment sentences")
@@ -64,7 +64,7 @@ else:
 detector = None
 if args.train:
     logging.info("Training model on '{}'.".format(args.train))
-    detector = Detector(slurp(args.train), epochs=args.epochs, 
+    detector = Detector(slurp(args.train), epochs=args.epochs,
                                            nocase=args.nocase)
 elif args.read:
     logging.info("Reading pretrained model '{}'.".format(args.read))
