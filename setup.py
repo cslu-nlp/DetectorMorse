@@ -7,4 +7,8 @@ setup(name="DetectorMorse",
       description="DetectorMorse, a sentence splitter",
       author="Kyle Gorman",
       author_email="kylebgorman@gmail.com",
-      packages=["detectormorse"])
+      packages=["detectormorse"],
+      install_requires=[
+          'nlup>=0.5.0',
+      ],
+)
