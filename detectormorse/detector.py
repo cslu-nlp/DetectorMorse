@@ -182,7 +182,7 @@ class Detector(JSONable):
         phi = self.extract_one(L, P, R)
         return self.classifier.predict(phi)
 
-    def segments(self, text):
+    def segments(self, text, strip=True):
         """
         Given a string of `text`, return a generator yielding each
         hypothesized sentence string
@@ -193,10 +193,16 @@ class Detector(JSONable):
             if B:
                 continue
             if self.predict(L, P, R):
-                yield text[start:end].rstrip()
+                sent = text[start:end]
+                if strip:
+                    sent = sent.rstrip()
+                yield sent
                 start = end
             # otherwise, there's probably not a sentence boundary here
-        yield text[start:].rstrip()
+        sent = text[start:]
+        if strip:
+            sent = sent.rstrip()
+        yield sent
 
     def evaluate(self, text):
         """
