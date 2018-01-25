@@ -10,5 +10,6 @@ setup(name="DetectorMorse",
       packages=["detectormorse"],
       install_requires=[
           'nlup>=0.5.0',
+          'setuptools',  # For pkg_resources
       ],
 )

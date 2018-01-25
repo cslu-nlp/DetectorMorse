@@ -23,6 +23,7 @@ import logging
 from collections import namedtuple
 from re import finditer, match, search
 
+import pkg_resources
 from nlup import case_feature, isnumberlike, listify, \
     BinaryAveragedPerceptron, BinaryConfusion, JSONable
 
@@ -37,6 +38,7 @@ NOCASE = False  # disable case-based features?
 EPOCHS = 20     # number of epochs (iterations for classifier training)
 BUFSIZE = 32    # for reading in left and right contexts...see below
 CLIP = 8        # clip numerical count feature values
+DEFAULT_MODEL = 'DM-wsj.json.gz'
 
 # character classes
 
@@ -69,6 +71,28 @@ def slurp(filename):
     """
     with open(filename, "r") as source:
         return source.read()
+
+
+def load_model_from_resource(name):
+    """
+    Return a Detector loaded from resource with the specified name.
+
+    The model name must match a filename existing under /models
+    in this package.
+    """
+    # Note that you do not want os.path.join here as all resource paths
+    # use forward slash
+    filename = pkg_resources.resource_filename(__name__, 'models/' + name)
+    return Detector.load(filename)
+
+
+def load_default_model():
+    """
+    Return a Detector loaded from the default model.
+
+    Currently, the default model is trained on WSJ.
+    """
+    return load_model_from_resource(DEFAULT_MODEL)
 
 
 class Detector(JSONable):
