@@ -65,11 +65,11 @@ QUOTE = r"^['`\"]+$"
 Observation = namedtuple("Observation", ["L", "P", "R", "B", "end"])
 
 
-def slurp(filename):
+def slurp(filename, encoding='utf-8'):
     """
     Given a `filename` string, slurp the whole file into a string
     """
-    with open(filename, "r") as source:
+    with open(filename, encoding=encoding) as source:
         return source.read()
 
 
