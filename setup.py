@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name="DetectorMorse",
-      version="0.2",
+      version="0.3.0",
       description="DetectorMorse, a sentence splitter",
       author="Kyle Gorman",
       author_email="kylebgorman@gmail.com",
