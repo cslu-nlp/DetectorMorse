@@ -73,7 +73,7 @@ def slurp(filename, encoding='utf-8'):
         return source.read()
 
 
-def load_model_from_resource(name):
+def load_from_resource(name):
     """
     Return a Detector loaded from resource with the specified name.
 
@@ -86,13 +86,13 @@ def load_model_from_resource(name):
     return Detector.load(filename)
 
 
-def load_default_model():
+def default_model():
     """
     Return a Detector loaded from the default model.
 
     Currently, the default model is trained on WSJ.
     """
-    return load_model_from_resource(DEFAULT_MODEL)
+    return load_from_resource(DEFAULT_MODEL)
 
 
 class Detector(JSONable):
