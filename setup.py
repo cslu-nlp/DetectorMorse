@@ -8,6 +8,9 @@ setup(name="DetectorMorse",
       author="Kyle Gorman",
       author_email="kylebgorman@gmail.com",
       packages=["detectormorse"],
+      package_data = {
+          'detectormorse': ['models/*'],
+      },
       install_requires=[
           'nlup>=0.5.0',
           'setuptools',  # For pkg_resources
