@@ -213,9 +213,6 @@ class Detector(JSONable):
         """
         start = 0
         for (L, P, R, B, end) in Detector.candidates(text):
-            # if there's already a newline there, we have nothing to do
-            if B:
-                continue
             if self.predict(L, P, R):
                 sent = text[start:end]
                 if strip:
