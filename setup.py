@@ -3,12 +3,12 @@
 from setuptools import setup
 
 setup(name="DetectorMorse",
-      version="0.3.0",
+      version="0.4.0",
       description="DetectorMorse, a sentence splitter",
       author="Kyle Gorman",
       author_email="kylebgorman@gmail.com",
       packages=["detectormorse"],
-      package_data = {
+      package_data={
           'detectormorse': ['models/*'],
       },
       install_requires=[
