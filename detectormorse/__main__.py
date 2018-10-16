@@ -25,7 +25,10 @@ import logging
 from argparse import ArgumentParser
 
 
-from .detector import Detector, slurp, EPOCHS
+from .detector import Detector, slurp, EPOCHS, default_model
+
+# Sentinel for reading in the default model
+_READ_DEFAULT = object()
 
 
 LOGGING_FMT = "%(message)s"
@@ -40,8 +43,9 @@ vrb_group.add_argument("-V", "--really-verbose", action="store_true",
               help="enable even more verbose output")
 inp_group = argparser.add_mutually_exclusive_group(required=True)
 inp_group.add_argument("-t", "--train", help="training data")
-inp_group.add_argument("-r", "--read",
-              help="read in serialized model")
+inp_group.add_argument("-r", "--read", nargs='?', const=_READ_DEFAULT,
+              help="read in a serialized model from a path or read "
+                       "the default model if no path is specified")
 out_group = argparser.add_mutually_exclusive_group(required=True)
 out_group.add_argument("-s", "--segment", help="segment sentences")
 out_group.add_argument("-w", "--write",
@@ -67,10 +71,16 @@ detector = None
 if args.train:
     logging.info("Training model on '{}'.".format(args.train))
     detector = Detector(slurp(args.train), epochs=args.epochs,
-                                           nocase=args.nocase)
+                        nocase=args.nocase)
 elif args.read:
-    logging.info("Reading pretrained model '{}'.".format(args.read))
-    detector = Detector.load(args.read)
+    if args.read is _READ_DEFAULT:
+        # If sentinel specified, load default model
+        logging.info("Reading default model.")
+        detector = default_model()
+    else:
+        # Otherwise load normally
+        logging.info("Reading pretrained model '{}'.".format(args.read))
+        detector = Detector.load(args.read)
 # output block
 if args.segment:
     logging.info("Segmenting '{}'.".format(args.segment))
