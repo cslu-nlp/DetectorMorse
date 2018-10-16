@@ -16,42 +16,48 @@ Installation
 ============
 
 ```
-    sudo pip install -r requirements.txt
-    sudo python setup build install
+pip install detectormorse
 ```
 
 Usage
 =====
 
-     Detector Morse, by Kyle Gorman
+```
+Detector Morse, by Kyle Gorman
      
-     usage: python -m detectormorse [-h] [-v] [-V] (-t TRAIN | -r READ)
-                                    (-s SEGMENT | -w WRITE | -e EVALUATE)
-                                    [-E EPOCHS] [-C]
+usage: python -m detectormorse [-h] [-v | -V] (-t TRAIN | -r [READ])
+                               (-s SEGMENT | -w WRITE | -e EVALUATE)
+                               [-E EPOCHS] [-C] [--preserve-whitespace]
 
-     optional arguments:
-       -h, --help            show this help message and exit
-       -v, --verbose         enable verbose output
-       -V, --really-verbose  enable even more verbose output
-       -t TRAIN, --train TRAIN
-                             training data
-       -r READ, --read READ  read in serialized model
-       -s SEGMENT, --segment SEGMENT
-                             segment sentences
-       -w WRITE, --write WRITE
-                             write out serialized model
-       -e EVALUATE, --evaluate EVALUATE
-                             evaluate on segmented data
-       -E EPOCHS, --epochs EPOCHS
-                             # of epochs (default: 20)
-       -C, --nocase          disable case features
-        
+Detector Morse
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         enable verbose output
+  -V, --really-verbose  enable even more verbose output
+  -t TRAIN, --train TRAIN
+                        training data
+  -r [READ], --read [READ]
+                        read in a serialized model from a path or read the
+                        default model if no path is specified
+  -s SEGMENT, --segment SEGMENT
+                        segment sentences
+  -w WRITE, --write WRITE
+                        write out serialized model
+  -e EVALUATE, --evaluate EVALUATE
+                        evaluate on segmented data
+  -E EPOCHS, --epochs EPOCHS
+                        # of epochs (default: 20)
+  -C, --nocase          disable case features
+  --preserve-whitespace
+                        preserve whitespace when segmenting
+```
 
 Files used for training (`-t`/`--train`) and evaluation (`-e`/`--evaluate`) should contain one sentence per line; newline characters are ignored otherwise.
 
 When segmenting a file (`-s`/`--segment`), DetectorMorse simply inserts a newline after predicted sentence boundaries that aren't already marked by one. All other newline characters are passed through, unmolested.
 
-The included `DM-wsj.json.gz` is a segmenter model trained on the Wall St. Journal portion of the Penn Treebank.
+The included `DM-wsj.json.gz` is a segmenter model trained on the Wall St. Journal portion of the Penn Treebank. This model can be loaded by using `detector.default_model()` or by specifying `-r` with no path at the command line.
 
 Method
 ======
