@@ -20,15 +20,15 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
+from collections import namedtuple
+from re import finditer, match, search
 
-from re import finditer, match, search, sub
-from collections import defaultdict, namedtuple
-from string import ascii_lowercase, ascii_uppercase, digits
-
+import pkg_resources
 from nlup import case_feature, isnumberlike, listify, \
-                 BinaryAveragedPerceptron, BinaryConfusion, JSONable
+    BinaryAveragedPerceptron, BinaryConfusion, JSONable
 
 from .ptbtokenizer import word_tokenize
+
 # FIXME(kbg) can surely avoid full-blown tokenization
 
 
@@ -38,6 +38,7 @@ NOCASE = False  # disable case-based features?
 EPOCHS = 20     # number of epochs (iterations for classifier training)
 BUFSIZE = 32    # for reading in left and right contexts...see below
 CLIP = 8        # clip numerical count feature values
+DEFAULT_MODEL = 'DM-wsj.json.gz'
 
 # character classes
 
@@ -64,12 +65,34 @@ QUOTE = r"^['`\"]+$"
 Observation = namedtuple("Observation", ["L", "P", "R", "B", "end"])
 
 
-def slurp(filename):
+def slurp(filename, encoding='utf-8'):
     """
     Given a `filename` string, slurp the whole file into a string
     """
-    with open(filename, "r") as source:
+    with open(filename, encoding=encoding) as source:
         return source.read()
+
+
+def load_from_resource(name):
+    """
+    Return a Detector loaded from resource with the specified name.
+
+    The model name must match a filename existing under /models
+    in this package.
+    """
+    # Note that you do not want os.path.join here as all resource paths
+    # use forward slash
+    filename = pkg_resources.resource_filename(__name__, 'models/' + name)
+    return Detector.load(filename)
+
+
+def default_model():
+    """
+    Return a Detector loaded from the default model.
+
+    Currently, the default model is trained on WSJ.
+    """
+    return load_from_resource(DEFAULT_MODEL)
 
 
 class Detector(JSONable):
@@ -117,8 +140,8 @@ class Detector(JSONable):
     @listify
     def extract_one(self, L, P, R):
         """
-        Given left context `L`, punctuation mark `P`, and right context 
-        R`, extract features. Probability distributions for any 
+        Given left context `L`, punctuation mark `P`, and right context
+        R`, extract features. Probability distributions for any
         quantile-based features will not be modified.
         """
         yield "*bias*"
@@ -177,27 +200,30 @@ class Detector(JSONable):
     def predict(self, L, P, R):
         """
         Given an left context `L`, punctuation mark `P`, and right context
-        `R`, return True iff this observation is hypothesized to be a 
+        `R`, return True iff this observation is hypothesized to be a
         sentence boundary.
         """
         phi = self.extract_one(L, P, R)
         return self.classifier.predict(phi)
 
-    def segments(self, text):
+    def segments(self, text, strip=True):
         """
         Given a string of `text`, return a generator yielding each
         hypothesized sentence string
         """
         start = 0
         for (L, P, R, B, end) in Detector.candidates(text):
-            # if there's already a newline there, we have nothing to do
-            if B:
-                continue
             if self.predict(L, P, R):
-                yield text[start:end].rstrip()
+                sent = text[start:end]
+                if strip:
+                    sent = sent.rstrip()
+                yield sent
                 start = end
             # otherwise, there's probably not a sentence boundary here
-        yield text[start:].rstrip()
+        sent = text[start:]
+        if strip:
+            sent = sent.rstrip()
+        yield sent
 
     def evaluate(self, text):
         """

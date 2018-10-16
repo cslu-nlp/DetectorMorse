@@ -3,8 +3,16 @@
 from setuptools import setup
 
 setup(name="DetectorMorse",
-      version="0.2",
+      version="0.3.0",
       description="DetectorMorse, a sentence splitter",
       author="Kyle Gorman",
       author_email="kylebgorman@gmail.com",
-      packages=["detectormorse"])
+      packages=["detectormorse"],
+      package_data = {
+          'detectormorse': ['models/*'],
+      },
+      install_requires=[
+          'nlup>=0.7',
+          'setuptools',  # For pkg_resources
+      ],
+)

@@ -21,9 +21,9 @@
 
 
 """
-Penn Treebank tokenizer, adapted from `nltk.tokenize.treebank.py`, which 
-in turn is adapted from an infamous sed script by Robert McIntyre. Even 
-ignoring the reduced import overhead, this is about half again faster than 
+Penn Treebank tokenizer, adapted from `nltk.tokenize.treebank.py`, which
+in turn is adapted from an infamous sed script by Robert McIntyre. Even
+ignoring the reduced import overhead, this is about half again faster than
 the NLTK version; don't ask me why.
 
 >>> s = '''Good muffins cost $3.88\\nin New York.  Please buy me\\ntwo of them.\\nThanks.'''
