@@ -12,7 +12,7 @@ setup(name="DetectorMorse",
           'detectormorse': ['models/*'],
       },
       install_requires=[
-          'nlup>=0.5.0',
+          'nlup>=0.7',
           'setuptools',  # For pkg_resources
       ],
 )
