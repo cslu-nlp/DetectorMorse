@@ -52,6 +52,8 @@ argparser.add_argument("-E", "--epochs", type=int, default=EPOCHS,
               help="# of epochs (default: {})".format(EPOCHS))
 argparser.add_argument("-C", "--nocase", action="store_true",
               help="disable case features")
+argparser.add_argument("--preserve-whitespace", action="store_true",
+                       help="preserve whitespace when segmenting")
 args = argparser.parse_args()
 # verbosity block
 if args.really_verbose:
@@ -72,7 +74,8 @@ elif args.read:
 # output block
 if args.segment:
     logging.info("Segmenting '{}'.".format(args.segment))
-    print("\n".join(detector.segments(slurp(args.segment))))
+    print("\n".join(detector.segments(slurp(args.segment),
+                                      strip=not args.preserve_whitespace)))
 if args.write:
     logging.info("Writing model to '{}'.".format(args.write))
     detector.dump(args.write)
