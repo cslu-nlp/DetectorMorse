@@ -15,4 +15,5 @@ setup(name="DetectorMorse",
           'nlup>=0.7',
           'setuptools',  # For pkg_resources
       ],
+      test_suite="default_model_test",
 )
