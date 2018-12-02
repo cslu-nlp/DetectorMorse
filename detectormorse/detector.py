@@ -155,7 +155,7 @@ class Detector(JSONable):
             if "." in L:
                 yield "L:*period*"
             if not self.nocase:
-                cf = case_feature(R)
+                cf = case_feature(L)
                 if cf:
                     yield "L:{}'".format(cf)
             L = L.upper()
